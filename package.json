@@ -1,0 +1,56 @@
+{
+  "name": "frc26-scout",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:synthetic": "node --import tsx scripts/dev-synthetic.ts",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run test:unit && npm run test:ui",
+    "test:unit": "node --conditions=react-server --import tsx --test tests/*.test.ts",
+    "test:ui": "node --import tsx --test tests/*.test.tsx",
+    "test:sql": "node scripts/test-sql.mjs",
+    "test:auth:local": "node --import tsx scripts/auth-integration.ts",
+    "fixture:event": "node --import tsx scripts/synthetic-event.ts",
+    "fixture:smoke": "node --import tsx scripts/smoke-synthetic.ts",
+    "fixture:profile": "node --import tsx scripts/profile-synthetic.ts"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.0",
+    "idb": "^8.0.3",
+    "next": "16.3.6",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "server-only": "^0.0.1",
+    "sharp": "^0.35.5",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16.3.3",
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.6",
+    "fake-indexeddb": "^6.2.5",
+    "jsdom": "^30.1.1",
+    "pg": "^8.23.1",
+    "prettier": "^3.9.8",
+    "supabase": "^2.117.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}

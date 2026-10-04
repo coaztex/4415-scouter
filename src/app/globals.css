@@ -1,0 +1,351 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f6f3;
+  --surface: #ffffff;
+  --surface-subtle: #f0efec;
+  --sidebar-surface: #f1f0ed;
+  --foreground: #242328;
+  --muted: #55545b;
+  --border: #cbc9c5;
+  --border-strong: #a9a6a1;
+  --interactive-hover: #fff9ec;
+  --interactive-shadow: 0 8px 22px rgb(45 35 22 / 12%);
+  --brand-primary: #870203;
+  --brand-primary-hover: #6d0102;
+  --on-brand-primary: #ffffff;
+  --brand-secondary: #fec240;
+  --on-brand-secondary: #231f20;
+  --accent: #870203;
+  --accent-hover: #6d0102;
+  --accent-soft: #fff0d6;
+  --focus-ring: #8a5400;
+  --on-accent: #ffffff;
+  --on-foreground: #ffffff;
+  --success: #176a3a;
+  --warning: #765000;
+  --danger: #a32020;
+  --info: #225c8a;
+  --avatar-surface: #ffffff;
+  --avatar-text: #24323f;
+  --alliance-red-bg: #fdfaf9;
+  --alliance-red-border: #b84d5b;
+  --alliance-blue-bg: #fafcff;
+  --alliance-blue-border: #4679b8;
+  --alliance-red: #9d293c;
+  --alliance-blue: #265e98;
+  --coverage-complete-bg: #e7f5eb;
+  --coverage-complete-text: #175b34;
+  --coverage-complete-border: #5e9d72;
+  --coverage-progress-bg: #fff5df;
+  --coverage-progress-text: #734c00;
+  --coverage-progress-border: #a77924;
+  --coverage-missing-bg: #fff5f3;
+  --coverage-missing-text: #8e3031;
+  --coverage-missing-border: #b94c50;
+  --coverage-review-bg: #ffebc7;
+  --coverage-review-text: #704200;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --background: #0d0d0f;
+  --surface: #17171a;
+  --surface-subtle: #202024;
+  --sidebar-surface: #111114;
+  --foreground: #f6f5f5;
+  --muted: #b8b7bd;
+  --border: #34343a;
+  --border-strong: #505058;
+  --interactive-hover: #25221b;
+  --interactive-shadow: 0 10px 24px rgb(0 0 0 / 30%);
+  --brand-primary: #870203;
+  --brand-primary-hover: #a91012;
+  --on-brand-primary: #ffffff;
+  --brand-secondary: #fec240;
+  --on-brand-secondary: #231f20;
+  --accent: #fec240;
+  --accent-hover: #ffcf68;
+  --accent-soft: #342b18;
+  --focus-ring: #fec240;
+  --on-accent: #231f20;
+  --on-foreground: #231f20;
+  --success: #8de3ae;
+  --warning: #ffd37a;
+  --danger: #ff9b9b;
+  --info: #9cc9f5;
+  --avatar-surface: #242428;
+  --avatar-text: #f8f4f2;
+  --alliance-red-bg: #1d1a1d;
+  --alliance-red-border: #bb5362;
+  --alliance-blue-bg: #191e26;
+  --alliance-blue-border: #5d8dcb;
+  --alliance-red: #f0a1ab;
+  --alliance-blue: #a9cdff;
+  --coverage-complete-bg: #173729;
+  --coverage-complete-text: #c5f3d6;
+  --coverage-complete-border: #3e9b67;
+  --coverage-progress-bg: #3b2e19;
+  --coverage-progress-text: #ffe2a4;
+  --coverage-progress-border: #c3933d;
+  --coverage-missing-bg: #302427;
+  --coverage-missing-text: #f4cecd;
+  --coverage-missing-border: #b96569;
+  --coverage-review-bg: #51391c;
+  --coverage-review-text: #ffdfa3;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #0d0d0f;
+    --surface: #17171a;
+    --surface-subtle: #202024;
+    --sidebar-surface: #111114;
+    --foreground: #f6f5f5;
+    --muted: #b8b7bd;
+    --border: #34343a;
+    --border-strong: #505058;
+    --interactive-hover: #25221b;
+    --interactive-shadow: 0 10px 24px rgb(0 0 0 / 30%);
+    --brand-primary: #870203;
+    --brand-primary-hover: #a91012;
+    --on-brand-primary: #ffffff;
+    --brand-secondary: #fec240;
+    --on-brand-secondary: #231f20;
+    --accent: #fec240;
+    --accent-hover: #ffcf68;
+    --accent-soft: #342b18;
+    --focus-ring: #fec240;
+    --on-accent: #231f20;
+    --on-foreground: #231f20;
+    --success: #8de3ae;
+    --warning: #ffd37a;
+    --danger: #ff9b9b;
+    --info: #9cc9f5;
+    --avatar-surface: #242428;
+    --avatar-text: #f8f4f2;
+    --alliance-red-bg: #1d1a1d;
+    --alliance-red-border: #bb5362;
+    --alliance-blue-bg: #191e26;
+    --alliance-blue-border: #5d8dcb;
+    --alliance-red: #f0a1ab;
+    --alliance-blue: #a9cdff;
+    --coverage-complete-bg: #173729;
+    --coverage-complete-text: #c5f3d6;
+    --coverage-complete-border: #3e9b67;
+    --coverage-progress-bg: #3b2e19;
+    --coverage-progress-text: #ffe2a4;
+    --coverage-progress-border: #c3933d;
+    --coverage-missing-bg: #302427;
+    --coverage-missing-text: #f4cecd;
+    --coverage-missing-border: #b96569;
+    --coverage-review-bg: #51391c;
+    --coverage-review-text: #ffdfa3;
+    color-scheme: dark;
+  }
+}
+.alliance-red {
+  background: var(--alliance-red-bg);
+  border-color: var(--alliance-red-border);
+}
+:root[data-theme="dark"] .identity-logo {
+  filter: drop-shadow(0 0 1px rgb(248 244 242 / 85%));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .identity-logo {
+    filter: drop-shadow(0 0 1px rgb(248 244 242 / 85%));
+  }
+}
+.alliance-blue {
+  background: var(--alliance-blue-bg);
+  border-color: var(--alliance-blue-border);
+}
+.schedule-match-card {
+  border-color: var(--border-strong);
+}
+.match-prep-own-card {
+  border-color: var(--brand-secondary);
+  box-shadow: inset 3px 0 var(--brand-secondary);
+}
+.schedule-alliance {
+  border-top: 1px solid var(--border);
+  border-left: 4px solid;
+}
+.schedule-alliance-red {
+  background: var(--alliance-red-bg);
+  border-left-color: var(--alliance-red-border);
+}
+.schedule-alliance-blue {
+  background: var(--alliance-blue-bg);
+  border-left-color: var(--alliance-blue-border);
+}
+.coverage-complete {
+  background: var(--coverage-complete-bg);
+  color: var(--coverage-complete-text);
+  border: 1px solid var(--coverage-complete-border);
+}
+.coverage-in_progress {
+  background: var(--coverage-progress-bg);
+  color: var(--coverage-progress-text);
+  border: 1px dashed var(--coverage-progress-border);
+}
+.coverage-missing {
+  background: var(--coverage-missing-bg);
+  color: var(--coverage-missing-text);
+  border: 1px solid var(--coverage-missing-border);
+}
+.coverage-unavailable {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border-strong);
+}
+.scouting-status-complete,
+.scouting-status-completed {
+  background: var(--coverage-complete-bg);
+  color: var(--coverage-complete-text);
+  border-color: currentColor;
+}
+.scouting-status-in_progress {
+  background: var(--coverage-progress-bg);
+  color: var(--coverage-progress-text);
+  border-color: currentColor;
+}
+.scouting-status-not_scouted,
+.scouting-status-missing {
+  background: var(--coverage-missing-bg);
+  color: var(--coverage-missing-text);
+  border-color: currentColor;
+}
+.scouting-status-needs_review {
+  background: var(--coverage-review-bg);
+  color: var(--coverage-review-text);
+  border-color: currentColor;
+}
+
+.interactive-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 5%);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .interactive-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    background: var(--interactive-hover);
+    box-shadow: var(--interactive-shadow);
+  }
+}
+.interactive-card:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
+}
+@media (hover: none) and (pointer: coarse) {
+  .interactive-card {
+    transition-duration: 70ms;
+  }
+  .interactive-card:active {
+    transform: translateY(1px) scale(0.995);
+    background: var(--interactive-hover);
+    box-shadow: 0 1px 1px rgb(0 0 0 / 4%);
+  }
+  .touch-pressable:not(:disabled):active {
+    transform: translateY(1px) scale(0.995);
+    filter: brightness(0.94);
+  }
+}
+.interactive-card:focus-visible,
+.interactive-card:has(:focus-visible) {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-subtle: var(--surface-subtle);
+  --color-sidebar-surface: var(--sidebar-surface);
+  --color-border-strong: var(--border-strong);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-hover: var(--brand-primary-hover);
+  --color-on-brand-primary: var(--on-brand-primary);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-on-brand-secondary: var(--on-brand-secondary);
+  --color-focus-ring: var(--focus-ring);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-on-accent: var(--on-accent);
+  --color-on-foreground: var(--on-foreground);
+  --color-alliance-red: var(--alliance-red);
+  --color-alliance-blue: var(--alliance-blue);
+  --color-avatar-surface: var(--avatar-surface);
+  --color-avatar-text: var(--avatar-text);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --spacing: 0.25rem;
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --text-title: clamp(2rem, 4vw, 2.75rem);
+  --text-title--line-height: 1.15;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button:not(:disabled),
+select:not(:disabled) {
+  cursor: pointer;
+}
+button,
+a,
+select {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interactive-card:hover,
+  .interactive-card:active {
+    transform: none;
+  }
+  .touch-pressable:active {
+    transform: none;
+  }
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "Hub Auto Fuel Count": {
+    "frc4414": 87.60090276811914
+  },
+  "Hub Teleop Fuel Count": {
+    "frc4414": 291.5465955956819
+  },
+  "Hub Endgame Fuel Count": {
+    "frc4414": 77.27752588976912
+  },
+  "Hub Total Fuel Count": {
+    "frc4414": 379.1474983638011
+  },
+  "Hub Transition Fuel Count": {
+    "frc4414": 35.96849837505208
+  },
+  "Hub Shift 1 Fuel Count": {
+    "frc4414": -8.424146625819342
+  },
+  "Hub Shift 2 Fuel Count": {
+    "frc4414": 104.93470685874858
+  },
+  "Hub Shift 3 Fuel Count": {
+    "frc4414": -6.690920127200579
+  },
+  "Hub Shift 4 Fuel Count": {
+    "frc4414": 88.48093122513208
+  },
+  "Hub First Active Shift Count": {
+    "frc4414": 96.51056023292924
+  },
+  "Hub Second Active Shift Count": {
+    "frc4414": 81.7900110979315
+  },
+  "Hub Uncounted": {
+    "frc4414": 6.232757218444431
+  },
+  "autoTowerPoints": {
+    "frc4414": -0.3708937012648294
+  },
+  "totalAutoPoints": {
+    "frc4414": 87.23000906685434
+  },
+  "totalTeleopPoints": {
+    "frc4414": 290.6492245791221
+  },
+  "endGameTowerPoints": {
+    "frc4414": -0.8973710165597582
+  },
+  "totalTowerPoints": {
+    "frc4414": -1.2682647178245878
+  },
+  "energizedAchieved": {
+    "frc4414": 0.6958628996677373
+  },
+  "superchargedAchieved": {
+    "frc4414": 0.9503203405871534
+  },
+  "traversalAchieved": {
+    "frc4414": 0
+  },
+  "minorFoulCount": {
+    "frc4414": 0.345697123759146
+  },
+  "majorFoulCount": {
+    "frc4414": -0.1335269870055727
+  },
+  "g206Penalty": {
+    "frc4414": 0
+  },
+  "adjustPoints": {
+    "frc4414": 0
+  },
+  "foulPoints": {
+    "frc4414": 2.9491273533116
+  },
+  "rp": {
+    "frc4414": 3.683205553274095
+  },
+  "totalPoints": {
+    "frc4414": 380.8283609992881
+  }
+}

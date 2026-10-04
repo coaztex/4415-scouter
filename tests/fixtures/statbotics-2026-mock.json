@@ -1,0 +1,31 @@
+{
+  "team": 4414,
+  "event": "2026cascmp",
+  "year": 2026,
+  "time": 1776000000,
+  "epa": {
+    "total_points": 120,
+    "breakdown": {
+      "total_points": 120,
+      "auto_points": 25,
+      "teleop_points": 70,
+      "endgame_points": 25,
+      "auto_fuel": 20,
+      "auto_tower": 5,
+      "transition_fuel": 10,
+      "first_shift_fuel": 30,
+      "second_shift_fuel": 30,
+      "endgame_fuel": 15,
+      "endgame_tower": 10,
+      "teleop_fuel": 85,
+      "total_fuel": 105,
+      "total_tower": 15,
+      "future_component": 3
+    }
+  },
+  "record": {
+    "total": {
+      "winrate": 0.8
+    }
+  }
+}

@@ -1,0 +1,35 @@
+.match-capture .fuel-tap {
+  min-height: 68px;
+  font-size: 1.875rem;
+  padding-inline: 0.5rem;
+}
+.match-capture[data-phase="teleop"] .fuel-buttons {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.match-capture .activity-tap {
+  min-height: 72px;
+}
+.teleop-live {
+  display: grid;
+  gap: 1rem;
+}
+@media (orientation: landscape) and (min-width: 700px) {
+  .match-capture[data-phase="teleop"] .fuel-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .teleop-live {
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+    gap: 1.5rem;
+  }
+  .match-capture .fuel-tap,
+  .match-capture .activity-tap {
+    min-height: 80px;
+  }
+}
+@media (min-height: 850px) {
+  .match-capture .fuel-tap,
+  .match-capture .activity-tap {
+    min-height: 88px;
+  }
+}
