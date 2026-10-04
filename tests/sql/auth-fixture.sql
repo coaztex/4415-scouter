@@ -13,6 +13,12 @@ create table auth.users (id uuid primary key, raw_user_meta_data jsonb, email te
 create function auth.uid() returns uuid language sql stable as $$
  select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
 $$;
-grant usage on schema auth to authenticated;
+create function auth.role() returns text language sql stable as $$
+ select coalesce(
+   nullif(current_setting('request.jwt.claim.role', true), ''),
+   nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'role'
+ );
+$$;
+grant usage on schema auth to authenticated, service_role;
 grant execute on function auth.uid() to authenticated;
 insert into auth.users(id,raw_user_meta_data) values ('00000000-0000-0000-0000-000000000001', '{}');

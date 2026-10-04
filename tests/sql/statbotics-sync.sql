@@ -45,6 +45,12 @@ end $$;
 select public.apply_statbotics_snapshot(pg_temp.stat_snapshot() || '{"attemptedAt":"2026-09-23T15:00:00Z","rows":[]}');
 select pg_temp.assert_ok((select count(*)=1 from public.external_team_metrics where source='statbotics'),'Empty result erased cache');
 select pg_temp.assert_ok((select status='succeeded' and last_error is null from public.event_sync_state where source='statbotics'),'Retry failed');
+set local role service_role;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select public.apply_statbotics_snapshot(pg_temp.stat_snapshot() || '{"attemptedAt":"2026-09-23T16:00:00Z","rows":[]}');
+select pg_temp.assert_ok((select status='succeeded' and last_error is null from public.event_sync_state where source='statbotics'),'Service-role retry failed');
+set local role authenticated;
+select set_config('request.jwt.claims','{"role":"authenticated"}',true);
 select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000021',true);
 do $$ begin
  begin perform public.apply_statbotics_snapshot(pg_temp.stat_snapshot()); raise exception 'Scout synced';

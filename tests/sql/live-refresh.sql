@@ -7,7 +7,8 @@ insert into public.events(tba_key,year,name,game_slug,created_by,start_date,end_
 values ('2026livetest',2026,'Live test','2026-rebuilt','00000000-0000-0000-0000-000000000090','2026-09-28','2026-09-29');
 
 set local role service_role;
-select set_config('request.jwt.claim.role','service_role',true);
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select pg_temp.assert_ok(auth.role() = 'service_role','Service role was not read from JWT claims');
 select pg_temp.assert_ok(public.claim_tba_refresh('2026livetest',300,false) is not null,'First lease not claimed');
 select pg_temp.assert_ok(public.claim_tba_refresh('2026livetest',300,true) is null,'Concurrent forced lease was allowed');
 select public.release_tba_refresh('2026livetest',(select token from public.tba_refresh_leases));
@@ -31,7 +32,7 @@ delete from public.scouting_assignments where event_id=(select id from public.ev
 select pg_temp.assert_ok((select updated_at > (select updated_at from before_assignment_delete) from public.events where tba_key='2026livetest'),'Assignment deletion did not signal event');
 
 set local role authenticated;
-select set_config('request.jwt.claim.role','authenticated',true);
+select set_config('request.jwt.claims','{"role":"authenticated"}',true);
 do $$ begin
   begin
     perform public.claim_tba_refresh('2026livetest',300,true);
