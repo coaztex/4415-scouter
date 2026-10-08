@@ -16,6 +16,7 @@ import {
 } from "../model";
 import { NoteForm } from "./notes";
 import { TeamMechanismSummary } from "./mechanism-badge";
+import { PitWeight } from "./pit-weight";
 import Image from "next/image";
 import { removeRobotMedia } from "@/features/robot-media/server/actions";
 import type { AwaitedReturn } from "../types";
@@ -185,10 +186,6 @@ function Overview({ detail }: { detail: Detail }) {
       {pit && (
         <Card>
           <h2 className="text-xl font-bold">Pit-reported capabilities</h2>
-          <p className="mb-4 text-sm text-muted">
-            Claims or demonstrations from the pit conversation; separate from
-            match-proven performance.
-          </p>
           <dl className="grid gap-4 sm:grid-cols-3">
             <Metric
               label="Primary scoring mechanism"
@@ -196,6 +193,7 @@ function Overview({ detail }: { detail: Detail }) {
               hint={pit.other_shooter_type}
             />
             <Metric label="Drivetrain" value={pretty(pit.drivetrain)} />
+            <PitWeight weightLbs={pit.robot_weight_lbs} />
             <Metric
               label="Shoot while moving"
               value={pretty(pit.shoot_while_moving)}
@@ -211,7 +209,7 @@ function Overview({ detail }: { detail: Detail }) {
         <Card>
           <h2 className="text-xl font-bold">External</h2>
           <p className="mb-4 text-sm text-muted">
-            Cached provider estimates and official event-derived metrics.
+            Provider estimates and official event metrics.
           </p>
           <dl className="grid grid-cols-2 gap-4">
             <Metric
@@ -253,8 +251,7 @@ function Overview({ detail }: { detail: Detail }) {
         <Card>
           <h2 className="text-xl font-bold">Our scouting</h2>
           <p className="mb-4 text-sm text-muted">
-            Human observations. Very-uncertain FUEL stays in match records and
-            is excluded here.
+            Scouted observations · very-uncertain FUEL excluded.
           </p>
           <dl className="grid grid-cols-2 gap-4">
             <Metric
@@ -288,9 +285,6 @@ function Overview({ detail }: { detail: Detail }) {
       </div>
       <Card>
         <h2 className="text-xl font-bold">Human / external comparison</h2>
-        <p className="mb-4 text-sm text-muted">
-          Sources are shown side by side without creating a combined score.
-        </p>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Metric
             label="Our mean total FUEL"
@@ -322,9 +316,8 @@ function Overview({ detail }: { detail: Detail }) {
         </div>
         {worthReviewing(row) && (
           <p className="mt-4 rounded-control border border-warning p-3 text-sm">
-            <strong>Worth reviewing:</strong> our observed FUEL estimate and TBA
-            component estimate differ substantially. Check match context and
-            sample sizes before drawing a conclusion.
+            <strong>Worth reviewing:</strong> scouted and TBA FUEL estimates
+            differ substantially. Check match context and sample sizes.
           </p>
         )}
       </Card>
@@ -440,6 +433,7 @@ function Pit({ detail }: { detail: Detail }) {
           hint={pit.other_shooter_type}
         />
         <Metric label="Drivetrain" value={pretty(pit.drivetrain)} />
+        <PitWeight weightLbs={pit.robot_weight_lbs} />
         <Metric
           label="FUEL capacity"
           value={
@@ -528,8 +522,7 @@ function Incidents({ detail, eventKey }: { detail: Detail; eventKey: string }) {
   return detail.incidents.length ? (
     <div className="space-y-3">
       <p className="text-sm text-muted">
-        Notable observations in match order. Confirmed causes are later reviewer
-        findings; the scout report remains unchanged.
+        Scout observations and separately confirmed causes.
       </p>
       {detail.incidents.map((incident) => (
         <IncidentCard

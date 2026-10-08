@@ -9,6 +9,11 @@ import {
   requiredPasswordChangeAction,
 } from "../server/lifecycle-actions";
 import type { AuthState } from "../state";
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  PASSWORD_LENGTH_HINT,
+} from "@/lib/auth/password-policy";
 
 function Result({ state }: { state: AuthState }) {
   return (
@@ -80,8 +85,9 @@ export function RegistrationForm() {
             label="Password"
             autoComplete="new-password"
             required
-            minLength={16}
-            maxLength={128}
+            minLength={MIN_PASSWORD_LENGTH}
+            maxLength={MAX_PASSWORD_LENGTH}
+            hint={PASSWORD_LENGTH_HINT}
             error={state.fieldErrors?.password}
           />
           <Input
@@ -91,14 +97,13 @@ export function RegistrationForm() {
             label="Confirm password"
             autoComplete="new-password"
             required
-            minLength={16}
-            maxLength={128}
+            minLength={MIN_PASSWORD_LENGTH}
+            maxLength={MAX_PASSWORD_LENGTH}
             error={state.fieldErrors?.confirm_password}
           />
         </div>
         <p className="text-sm text-muted">
-          Use a unique password of 16–128 characters. An administrator must
-          approve your account before you can scout.
+          Use a unique password. Admin approval is required.
         </p>
         <Result state={state} />
         <Button type="submit" className="w-full">
@@ -155,10 +160,10 @@ export function RequiredPasswordChangeForm() {
         label="New password"
         autoComplete="new-password"
         required
-        minLength={16}
-        maxLength={128}
+        minLength={MIN_PASSWORD_LENGTH}
+        maxLength={MAX_PASSWORD_LENGTH}
         readOnly={pending}
-        hint="16–128 characters."
+        hint={PASSWORD_LENGTH_HINT}
         error={state.fieldErrors?.password}
       />
       <Input
@@ -168,8 +173,8 @@ export function RequiredPasswordChangeForm() {
         label="Confirm new password"
         autoComplete="new-password"
         required
-        minLength={16}
-        maxLength={128}
+        minLength={MIN_PASSWORD_LENGTH}
+        maxLength={MAX_PASSWORD_LENGTH}
         readOnly={pending}
         error={state.fieldErrors?.confirm_password}
       />

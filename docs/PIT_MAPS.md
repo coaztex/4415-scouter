@@ -1,0 +1,51 @@
+# Event pit maps
+
+Nexus is an optional enhancement to the existing event sync and Pit Scouting routes. Configure `NEXUS_API_KEY` only on the server; never use a `NEXT_PUBLIC_*` key. The adapter uses the official [Nexus API](https://frc.nexus/api/v1/docs), fixed host, `Nexus-Api-Key` header, bounded response bodies, timeouts and at most three transport attempts. Provider response/error bodies are never displayed in diagnostics.
+
+## Setup and synchronization
+
+Apply additive migration `20261021000000_event_pit_maps.sql` before enabling sync. On Admin Events or Admin Sync, leave the Nexus event-key override blank to use the TBA event key, or enter the actual Nexus key. **Sync Pit Map** saves that setting and forces a refresh independent of TBA credentials. Ordinary admin event import/sync also checks Nexus after the existing provider steps. Scouting page loads and live TBA refreshes never fetch Nexus.
+
+Successful, partial and missing-resource attempts are cached for 24 hours; failures back off for one hour. A changed override bypasses the old key's freshness check. Manual admin refresh bypasses these intervals. HTTP 404 is an optional missing resource. Failed or malformed resources retain useful same-key cached data; fully failed/missing refreshes preserve the prior snapshot and its fetched time. Status, last attempt and failure message identify retained data. A confirmed assignments-only response can replace old geometry. Atomic writes reject obsolete attempts and override changes during a fetch. Manual layouts are retained unless an admin explicitly refreshes.
+
+## Stable data contract
+
+`src/features/pit-map/model.ts` owns version-1 normalized layout types and runtime validation. Width and height are both null for assignments-only data; coordinates are never invented. A layout separates pits, walls, named areas, text labels, arrows, and canonical `{teamNumber, pitLabel}` assignments. Missing teams remain null. Geometry uses map coordinates in provider units. Assignment compatibility (array, wrapped `pits` array, or team-to-label mapping) lives exclusively in the Nexus normalizer. Invalid optional objects are omitted with warnings.
+
+`readPitMapCache` and `cachedEventPitMap` expose typed, validated cache records without provider access. Cache reads reapply the existing canonical assignment join when assignments are present, so older geometry cached without team numbers also displays teams. The join matches pit labels (or geometry IDs when labels are absent); ambiguous assignments stay unassigned. `pitAssignmentsByTeam` supplies a normalized lookup. Existing pit team queries expose labels to cards and forms. Missing tables, denied reads, invalid layouts and unavailable Nexus do not prevent Pit Scouting from loading. Nexus attribution links are included wherever its cached assignments or sync status are shown.
+
+## Persistence and permissions
+
+`events.nexus_event_key` is optional. `event_pit_maps` has one primary-keyed event record with normalized JSONB, optional private raw response JSONB, source/key/fetched time, and attempt status/error. No unrelated robot table, extra provider enum, or redundant index is added. Both JSONB values are bounded. Active event users can read normalized cache columns through existing event-access RLS; raw responses are excluded from authenticated column grants. Inactive/pending users cannot read it; archived events remain admin-only.
+
+Strategy/admin writes use the checked `store_nexus_pit_map` RPC with event-access checks; service jobs use its system branch. Authenticated direct table writes are revoked. The RPC does not accept an arbitrary actor identity. Nexus credentials never enter cache records. `source: "manual"` and the shared normalized format leave room for later manual layouts; a manual editor is deferred.
+
+## Interactive scouting map
+
+The existing Pit Scouting index renders the SVG map above search, filters and team cards. The list stays usable when the map is missing or collapsed. Each roster pit links to the same `/events/[eventKey]/pit/[teamNumber]` form. Non-roster and unassigned pits remain gray and noninteractive. The SVG renders pits, walls, areas, labels and arrows from normalized data only.
+
+Red/○ means not scouted; green/✓ means a completed submission exists; yellow/◷ with a dashed border means a scout currently has that form active. Ephemeral presence takes priority over completion. Persistent draft claims do not color a pit yellow after a scout leaves. An event-scoped, read-only `get_event_pit_completion` RPC exposes only completed team numbers, keeping other scouts' report contents private. Pit submission changes reuse the existing coverage signal for debounced Realtime refresh. Missing optional migrations fall back to existing completed status.
+
+The map defaults to **Pits**. Its fit bounds include every pit rectangle, including unassigned boxes, with 7.5% padding on each side. **Venue** uses the original full map width and height and shows all normalized walls, areas, labels and arrows with subdued theme-aware styling. Pits hides that geometry in the same SVG renderer; map coordinates and cached data remain unchanged. No pit boxes gracefully selects Venue. Switching views and pressing Fit make no provider calls. Each view remembers its pan/zoom during the current map session when viewport dimensions and bounds match; resized viewports refit.
+
+Assigned pits show a dominant team number and secondary pit label. Unassigned pits show their label only. Search and keyboard focus use a separate blue outer ring that preserves the status fill, border and symbol.
+
+The contained SVG viewport supports drag/pan, two-pointer pinch, wheel zoom, compact Fit/−/+ buttons and keyboard arrows/+/-/0/Home. Fit and 0/Home use the active view's bounds. Detailed instructions remain accessible in a collapsed Help control. The default phone viewport is 300 px high, with a full-window native dialog for detail, Escape/Close dismissal, focus return and native focus trapping. Dense pit layouts can still require zoom or fullscreen for readable individual boxes. Tab navigates pit links and pans an offscreen focused pit into view. Zoom is bounded to 0.75–20 times the fitted scale. Pointer movement updates only an SVG transform via animation frames, and static geometry/pit components are memoized. Map pit links disable bulk route prefetching. Existing search highlights matching pits without changing map navigation.
+
+## Ephemeral presence deployment
+
+Apply additive migration `20261022000000_pit_presence.sql` for completion aggregation and private Presence receive/publish policies. It uses the existing Supabase browser client and [Realtime Presence authorization](https://supabase.com/docs/guides/realtime/authorization). Policies allow only active authenticated users with access to the active event on the exact `pit-presence:<event UUID>` topic, and only the presence extension. They neither open broadcast access nor store fake submission statuses. Existing broad Realtime policies, if separately configured, should be reviewed because permissive policies combine with OR.
+
+The map observes without tracking a team. A form tracks only `{teamNumber}` with a random session key, and shows a non-blocking warning if another session tracks the same team. No names, email addresses, user IDs, or report data are broadcast. Presence is advisory rather than a lock or an authoritative submission value. Route/unmount/pagehide cleanup untracks and removes the channel; hidden tabs untrack, visible tabs re-track, and connection loss clears live yellow activity. The next route waits for same-topic removal before joining, avoiding reused-channel races. A return from the browser's back/forward cache rejoins. Realtime failure leaves ordinary forms and persisted red/green status available.
+
+No new environment variables or dependency packages were introduced for the UI. Native dialog and Pointer Events are used in current browsers. The migration adds policies to Supabase's owned `realtime.messages` table only; the disposable SQL Auth fixture includes a stand-in for policy verification, never for deployment. The integration audit on October 7, 2026 verified that migrations `20261021000000` and `20261022000000` are applied to the linked project and match their recorded SQL.
+
+Database types were regenerated using the official Supabase postgres-meta generator against a disposable PostgreSQL database with all migrations applied. Nullable text RPC argument contracts live in the stable `database.ts` layer because introspection cannot infer those arguments' nullability. The integration audit made no changes to the linked database.
+
+## Verification
+
+`tests/nexus.test.ts`, synthetic Nexus fixtures, component tests and `tests/sql/event-pit-maps.sql` cover normalization, optional credentials, fixed-host transport, missing/malformed resources, overrides, TTL/manual refresh, partial failures, scouting fallbacks, RLS, raw response privacy, concurrency and cache preservation. Run `npm test`, `npm run test:sql`, `npm run typecheck`, `npm run lint`, and `npm run build`. Real Nexus access requires the optional key and event data and is not exercised by synthetic fixtures.
+
+`tests/pit-map.test.ts`, `tests/pit-map-ui.test.tsx` and `tests/sql/pit-presence.sql` also exercise a 120-pit map, presence/completion priority, disconnect/route cleanup, private channel setup, normalized geometry, form routes, collapse/full-window dismissal, configured mobile height, keyboard and pointer gestures, zoom bounds, assignments-only fallbacks, search/list preservation, completion privacy and event/pending/archive authorization. Live multi-client Realtime and physical-device gestures need deployed credentials and migrations and are not replaced by DOM/transport fixtures.
+
+View-mode tests cover the default Pits view, offset pit bounds and padding, full Venue bounds, empty-pit fallback, retained venue geometry, independent viewport memory, context-sensitive Fit/0/Home, no fetch on view changes, team/label hierarchy, neutral label-only boxes and status-preserving highlights. Cache fixtures verify joining separate geometry and assignments and repairing older cached layouts without mutating normalized geometry.

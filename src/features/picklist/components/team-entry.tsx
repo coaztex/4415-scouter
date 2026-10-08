@@ -1,7 +1,10 @@
 "use client";
 import Link from "next/link";
 import { roleLabels } from "@/features/teams/directory-model";
-import { MechanismBadge } from "@/features/teams/components/mechanism-badge";
+import {
+  drivetrainLabels,
+  scoringMechanismLabels,
+} from "@/games/2026-rebuilt/pit-options";
 import { rawLabel, type PicklistState, type ScoredTeam } from "../model";
 import type { EvidenceTeam } from "../snapshot";
 type Control = PicklistState["controls"][string];
@@ -47,12 +50,17 @@ export function TeamEntry({
             {position !== undefined ? `${position + 1}. ` : ""}#
             {team.teamNumber} · {team.nickname ?? "Name unavailable"}
           </Link>
-          <span className="ml-2 inline-block align-middle">
-            <MechanismBadge
-              mechanism={team.mechanism}
-              reported={team.pitReported}
-            />
-          </span>
+          <p
+            className="text-xs text-muted"
+            title="Pit-scouted / team-reported. Robot only; battery and bumpers excluded."
+          >
+            Pit specs:{" "}
+            {team.robotWeightLbs === null
+              ? "Weight: Unknown"
+              : `${team.robotWeightLbs} lb`}{" "}
+            · {drivetrainLabels[team.drivetrain]} ·{" "}
+            {scoringMechanismLabels[team.mechanism]}
+          </p>
           <p className="text-sm">
             <b>{team.sampleSize} scouting matches</b> · Role n=
             {team.roleSamples}
@@ -230,9 +238,8 @@ export function TeamEntry({
           </p>
         )}
         <p className="mt-3 text-sm">
-          FUEL excludes very uncertain estimates, DNS and DNF; missing phases
-          never become zero. Other observations remain usable for their own
-          profiles.
+          FUEL excludes very-uncertain, DNS and DNF estimates. Missing phases
+          remain unknown.
         </p>
         <ul className="mt-3 flex flex-wrap gap-3 text-sm">
           {team.records.map((r) => (

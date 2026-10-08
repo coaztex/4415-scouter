@@ -91,6 +91,46 @@ export function SyncControls({ eventKey }: { eventKey: string }) {
     </div>
   );
 }
+export function PitMapSyncControls({
+  eventKey,
+  nexusEventKey,
+}: {
+  eventKey: string;
+  nexusEventKey: string | null;
+}) {
+  const [state, action, pending] = useActionState<ImportState, FormData>(
+    eventImportAction,
+    {},
+  );
+  return (
+    <form action={action} className="mt-4 space-y-2">
+      <input type="hidden" name="eventKey" value={eventKey} />
+      <input type="hidden" name="operation" value="pit-map" />
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="grid gap-1 text-sm font-bold">
+          Nexus event key override (optional)
+          <input
+            name="nexusEventKey"
+            defaultValue={nexusEventKey ?? ""}
+            placeholder={eventKey}
+            maxLength={80}
+            className="min-h-12 rounded-control border border-border bg-surface px-3"
+          />
+        </label>
+        <Button type="submit" variant="secondary" disabled={pending}>
+          {pending ? "Syncing pit map…" : "Sync Pit Map"}
+        </Button>
+      </div>
+      <p className="text-sm text-muted">Blank uses the event key.</p>
+      {state.error && (
+        <p role="alert" className="text-danger">
+          {state.error}
+        </p>
+      )}
+      {state.message && <p role="status">{state.message}</p>}
+    </form>
+  );
+}
 export function EventStatusControl({
   id,
   status,

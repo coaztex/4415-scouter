@@ -9,6 +9,15 @@ import { build2026Stats } from "../src/games/2026-rebuilt/stats";
 import { emptyScouting } from "../src/features/teams/model";
 import type { StatsRow } from "../src/features/stats/model";
 
+test("activity sort options use the same current terminology as their tables", () => {
+  const labels = metricsByTab.activity
+    .map((metric) => metric.label)
+    .join(" · ");
+  assert.doesNotMatch(labels, /Shuffl|Shuttler|Inactive \/ other/);
+  assert.match(labels, /Shuttling \/ Passing time share/);
+  assert.match(labels, /Other \/ Idle time share/);
+});
+
 test("Stats overview distinguishes missing sources and small samples", () => {
   const overall = build2026Stats([]).overall;
   const row = {
@@ -21,13 +30,12 @@ test("Stats overview distinguishes missing sources and small samples", () => {
     <Overview rows={[row]} overall={overall} uncertain={false} />,
   );
   assert.match(html, /Event Baselines/);
-  assert.match(html, /Typical performance across scouted teams at this event/);
-  assert.match(html, /Insufficient sample for distribution/);
+  assert.match(html, /Distribution needs at least 5 eligible teams/);
   assert.match(html, /TBA cache/);
   assert.match(html, /Statbotics cache/);
   assert.match(html, /Missing EPA is unknown, never zero/);
-  assert.match(html, /Shuttler/);
-  assert.doesNotMatch(html, /Passer-Feeder|passing/);
+  assert.match(html, /Shuttling \/ Passing/);
+  assert.doesNotMatch(html, /Passer-Feeder|Shuttler|Shuffling/);
 });
 
 test("team incident links can open the incidents tab directly", () => {

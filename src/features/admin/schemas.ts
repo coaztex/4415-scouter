@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordSchema } from "@/lib/auth/password-policy";
 export const roles = ["scout", "strategy", "admin"] as const;
 export const profileValues = z.object({
   display_name: z.string().trim().min(1).max(100),
@@ -11,7 +12,7 @@ export const profileValues = z.object({
   active: z.boolean(),
   approval_pending: z.boolean().default(false),
 });
-export const temporaryPassword = z.string().min(16).max(128);
+export const temporaryPassword = passwordSchema;
 export const accountInput = profileValues.omit({ active: true }).extend({
   email: z
     .email()

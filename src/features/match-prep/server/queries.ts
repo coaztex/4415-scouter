@@ -1,14 +1,12 @@
 import "server-only";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/auth/server";
 import { getTeamDirectory } from "@/features/teams/server/queries";
 import { parsePit } from "@/features/teams/model";
-import {
-  defaultMatch,
-  upcomingMatches,
-  type PrepMatch,
-  type PrepStation,
-} from "../model";
+import { selectPrepMatch, type PrepMatch, type PrepStation } from "../model";
+import { getMatchStations } from "@/features/events/match-stations";
+import { readEventCachePages } from "@/features/events/server/cache-pages";
+import { isPlayed, orderedMatches } from "@/features/event-schedule/model";
 
 export async function getMatchPrep(eventKey: string, selectedKey?: string) {
   const { db } = await requireRole("strategy");
@@ -19,35 +17,42 @@ export async function getMatchPrep(eventKey: string, selectedKey?: string) {
     .eq("id", directory.event.id)
     .single();
   const [matchesResult, stationsResult] = await Promise.all([
-    db
-      .from("matches")
-      .select(
-        "id,tba_match_key,comp_level,set_number,match_number,scheduled_time,predicted_time,actual_time,result_metadata",
-      )
-      .eq("event_id", directory.event.id)
-      .limit(1000),
-    db
-      .from("match_teams")
-      .select("match_id,team_number,alliance,station")
-      .eq("event_id", directory.event.id)
-      .limit(3000),
+    readEventCachePages((from, to) =>
+      db
+        .from("matches")
+        .select(
+          "id,tba_match_key,comp_level,set_number,match_number,scheduled_time,predicted_time,actual_time,result_metadata",
+        )
+        .eq("event_id", directory.event.id)
+        .order("id")
+        .range(from, to),
+    ),
+    readEventCachePages((from, to) =>
+      db
+        .from("match_teams")
+        .select("match_id,team_number,alliance,station")
+        .eq("event_id", directory.event.id)
+        .order("match_id")
+        .order("team_number")
+        .range(from, to),
+    ),
   ]);
-  if (event.error || matchesResult.error || stationsResult.error)
-    throw new Error("Match Prep schedule unavailable.");
-  const allMatches = matchesResult.data as PrepMatch[];
-  const matches = upcomingMatches(allMatches);
-  const stations = stationsResult.data as PrepStation[];
-  const selected = selectedKey
-    ? allMatches.find((m) => m.tba_match_key === selectedKey)
-    : defaultMatch(matches, stations, event.data.our_team_number);
-  if (selectedKey && !selected) notFound();
-  const selectedIsPlayed = Boolean(
-    selected && !matches.some((match) => match.id === selected.id),
+  if (event.error) throw new Error("Match Prep schedule unavailable.");
+  const matches = orderedMatches(matchesResult as PrepMatch[]);
+  const stations = stationsResult as PrepStation[];
+  const { selected, invalidSelection } = selectPrepMatch(
+    matches,
+    stations,
+    event.data.our_team_number,
+    selectedKey,
   );
-  if (selected && selectedIsPlayed) matches.unshift(selected);
-  const lineup = selected
-    ? stations.filter((s) => s.match_id === selected.id)
-    : [];
+  if (invalidSelection)
+    redirect(`/events/${encodeURIComponent(eventKey)}/match-prep`);
+  const selectedIsPlayed = !!selected && isPlayed(selected);
+  const officialStations = getMatchStations(
+    selected ? stations.filter((s) => s.match_id === selected.id) : [],
+  );
+  const lineup = [...officialStations.red, ...officialStations.blue];
   const numbers = lineup.map((s) => s.team_number);
   const [pits, notes] = selected
     ? await Promise.all([
@@ -93,3 +98,4 @@ export async function getMatchPrep(eventKey: string, selectedKey?: string) {
     })),
   };
 }
+export type MatchPrepData = Awaited<ReturnType<typeof getMatchPrep>>;

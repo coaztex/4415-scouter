@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { requireRole, AuthorizationError } from "@/lib/auth/server";
 import { roles } from "../schemas";
 import { adminAccountDetails } from "./accounts";
+import { readPitMapCache } from "@/features/pit-map/server/cache";
 export const adminContext = cache(async () => {
   try {
     return await requireRole("admin");
@@ -18,12 +19,17 @@ export const adminEvents = cache(async () => {
   const { data, error } = await db
     .from("events")
     .select(
-      "id,tba_key,name,status,year,our_team_number,timezone,timezone_source,last_tba_sync_at,last_statbotics_sync_at,event_sync_state(source,status,last_attempt_at,last_success_at,last_error)",
+      "id,tba_key,name,status,year,our_team_number,timezone,timezone_source,last_tba_sync_at,last_statbotics_sync_at,nexus_event_key,event_sync_state(source,status,last_attempt_at,last_success_at,last_error)",
     )
     .order("year", { ascending: false })
     .order("name");
   if (error) throw new Error("Event administration is unavailable.");
-  return data;
+  return Promise.all(
+    data.map(async (event) => ({
+      ...event,
+      pitMapCache: await readPitMapCache(db, event.id),
+    })),
+  );
 });
 export async function userList(
   params: Record<string, string | string[] | undefined>,

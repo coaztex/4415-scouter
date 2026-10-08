@@ -186,8 +186,7 @@ export function MatchWorkflow({ context }: { context: CaptureContext }) {
           role="alert"
           className="border-b border-danger bg-surface px-4 py-2 text-center text-sm font-bold text-danger"
         >
-          Offline — your draft stays on this device; submission will sync when
-          connected.
+          Offline · draft saved on this device; sync resumes when connected.
         </p>
       )}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">

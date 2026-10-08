@@ -203,6 +203,7 @@ test("pit numeric capacity validates and qualitative fallback remains selectable
       "approximate_count" | "band"
     >("band");
     const [numeric, setNumeric] = useState("");
+    const [weightNumeric, setWeightNumeric] = useState("");
     return (
       <>
         <PitCapabilities
@@ -212,6 +213,8 @@ test("pit numeric capacity validates and qualitative fallback remains selectable
           setCapacityMode={setCapacityMode}
           numeric={numeric}
           setNumeric={setNumeric}
+          weightNumeric={weightNumeric}
+          setWeightNumeric={setWeightNumeric}
         />
         <button
           onClick={() => {
@@ -235,15 +238,11 @@ test("pit numeric capacity validates and qualitative fallback remains selectable
   fireEvent.change(screen.getByLabelText("Approximate maximum FUEL capacity"), {
     target: { value: "approximate_count" },
   });
-  fireEvent.input(screen.getByLabelText("Approximate number (not exact)"), {
+  fireEvent.input(screen.getByLabelText("Approximate FUEL count"), {
     target: { value: "42" },
   });
   assert.equal(
-    (
-      screen.getByLabelText(
-        "Approximate number (not exact)",
-      ) as HTMLInputElement
-    ).value,
+    (screen.getByLabelText("Approximate FUEL count") as HTMLInputElement).value,
     "42",
   );
   assert.equal(screen.getByLabelText("Numeric state").textContent, "42");
@@ -252,7 +251,7 @@ test("pit numeric capacity validates and qualitative fallback remains selectable
     screen.getByText(/"amount":42/).textContent ?? "",
     /approximate_count/,
   );
-  fireEvent.input(screen.getByLabelText("Approximate number (not exact)"), {
+  fireEvent.input(screen.getByLabelText("Approximate FUEL count"), {
     target: { value: "10001" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Validate pit" }));

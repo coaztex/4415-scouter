@@ -5,6 +5,7 @@ import { PitCapabilities } from "../src/features/pit/components/fields";
 import { AutoRoutines } from "../src/features/pit/components/routines";
 import { blankPit, newRoutine } from "../src/features/pit/model";
 import { TeamMechanismSummary } from "../src/features/teams/components/mechanism-badge";
+import { PitWeight } from "../src/features/teams/components/pit-weight";
 
 const noop = () => {};
 test("pit capability form keeps numeric estimate optional and climbing secondary", () => {
@@ -17,12 +18,17 @@ test("pit capability form keeps numeric estimate optional and climbing secondary
       setCapacityMode={noop}
       numeric=""
       setNumeric={noop}
+      weightNumeric=""
+      setWeightNumeric={noop}
     />,
   );
   assert.match(markup, /Approximate maximum FUEL capacity/);
   assert.match(markup, /Unknown or qualitative estimate/);
-  assert.match(markup, /Climbing · lower priority/);
+  assert.match(markup, /Climbing/);
   assert.match(markup, /Primary scoring mechanism/);
+  assert.match(markup, /Robot specifications/);
+  assert.match(markup, /Robot weight \(lb\)/);
+  assert.match(markup, /Excludes battery and bumpers\./);
   assert.equal(
     (markup.match(/name="primary-scoring-mechanism"/g) ?? []).length,
     4,
@@ -48,10 +54,23 @@ test("pit capability form keeps numeric estimate optional and climbing secondary
       setCapacityMode={noop}
       numeric="42"
       setNumeric={noop}
+      weightNumeric="112.4"
+      setWeightNumeric={noop}
     />,
   );
   assert.match(yes, /Highest demonstrated level/);
-  assert.match(yes, /Approximate number \(not exact\)/);
+  assert.match(yes, /Approximate FUEL count/);
+  assert.match(yes, /value="112.4"/);
+});
+
+test("team profile labels known and unknown pit-reported robot weight", () => {
+  const known = renderToStaticMarkup(<PitWeight weightLbs={112.4} />);
+  const unknown = renderToStaticMarkup(<PitWeight weightLbs={null} />);
+  assert.match(known, /Weight/);
+  assert.match(known, /112.4 lb/);
+  assert.match(known, /Pit reported · excludes battery and bumpers/);
+  assert.match(unknown, /Unknown/);
+  assert.doesNotMatch(unknown, /0 lb/);
 });
 
 test("Other reveals a required shooter type; team view distinguishes unreported mechanisms", () => {
@@ -64,6 +83,8 @@ test("Other reveals a required shooter type; team view distinguishes unreported 
       setCapacityMode={noop}
       numeric=""
       setNumeric={noop}
+      weightNumeric=""
+      setWeightNumeric={noop}
     />,
   );
   assert.match(form, /Other shooter type/);

@@ -6,13 +6,14 @@ import {
 } from "../schemas";
 import type { AuthState } from "../state";
 import type { z } from "zod";
+import { PASSWORD_LENGTH_HINT } from "@/lib/auth/password-policy";
 
 function validationState(issues: z.core.$ZodIssue[]): AuthState {
   const labels: Record<string, string> = {
     display_name: "Enter a display name of 1–100 characters.",
     username: "Use 3–40 letters, digits, or underscores.",
     email: "Enter a valid email address.",
-    password: "Use a password of 16–128 characters.",
+    password: PASSWORD_LENGTH_HINT,
     confirm_password: "Passwords do not match.",
   };
   return {

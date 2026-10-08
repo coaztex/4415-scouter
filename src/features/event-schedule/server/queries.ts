@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { getEvent, eventContext } from "@/features/events/server/queries";
 import { getGameModule } from "@/games/registry";
 import { createServiceClient } from "@/lib/supabase/service";
+import { getMatchStations } from "@/features/events/match-stations";
+import { readEventCachePages as pages } from "@/features/events/server/cache-pages";
 import {
   coverageSchema,
   coverageIndex,
@@ -11,22 +13,6 @@ import {
   type MatchStation,
 } from "../model";
 
-async function pages<T>(
-  read: (
-    from: number,
-    to: number,
-  ) => PromiseLike<{ data: T[] | null; error: unknown }>,
-) {
-  const rows: T[] = [];
-  for (let from = 0; from < 20000; from += 500) {
-    const result = await read(from, from + 499);
-    if (result.error || !result.data)
-      throw new Error("Event schedule cache unavailable.");
-    rows.push(...result.data);
-    if (result.data.length < 500) return rows;
-  }
-  throw new Error("Event schedule exceeds supported size.");
-}
 export async function getEventSchedule(eventKey: string) {
   const event = await getEvent(eventKey);
   const { db, profile } = await eventContext();
@@ -80,15 +66,16 @@ export async function getEventSchedule(eventKey: string) {
       ? (leaseResult.data.expires_at ?? null)
       : null,
     coverageAvailable: coverage !== null,
-    matches: orderedMatches(matches).map((match) => ({
-      ...match,
-      stations: (stationMap.get(match.id) ?? [])
-        .sort((a, b) => a.station - b.station)
-        .map((station) => ({
+    matches: orderedMatches(matches).map((match) => {
+      const lineup = getMatchStations(stationMap.get(match.id) ?? []);
+      return {
+        ...match,
+        stations: [...lineup.red, ...lineup.blue].map((station) => ({
           ...station,
           coverage: robotCoverage(coverage, match.id, station.team_number),
         })),
-    })),
+      };
+    }),
   };
 }
 
@@ -160,15 +147,14 @@ export async function getOfficialMatch(eventKey: string, matchKey: string) {
   const coverage = coverageIndex(
     !coverageResult.error && parsed.success ? parsed.data : null,
   );
+  const lineup = getMatchStations(source.match_teams);
   const match = {
     ...source,
-    stations: source.match_teams
-      .sort((a, b) => a.station - b.station)
-      .map((station) => ({
-        ...station,
-        match_id: source.id,
-        coverage: robotCoverage(coverage, source.id, station.team_number),
-      })),
+    stations: [...lineup.red, ...lineup.blue].map((station) => ({
+      ...station,
+      match_id: source.id,
+      coverage: robotCoverage(coverage, source.id, station.team_number),
+    })),
   };
   const readable = new Map<
     number,

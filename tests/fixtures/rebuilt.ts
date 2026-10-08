@@ -28,6 +28,7 @@ export function matchData(): RebuiltMatchData {
 export function pitData(): RebuiltPitData {
   return {
     drivetrain: "unknown",
+    robot_weight_lbs: null,
     primary_scoring_mechanism: "unknown",
     fuel_capacity: { kind: "band", band: "unknown" },
     preferred_scoring_areas: null,

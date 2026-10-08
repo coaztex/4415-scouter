@@ -11,7 +11,12 @@ import {
   rebuiltPitSchema,
   type RebuiltPitData,
 } from "@/games/2026-rebuilt/pit-schema";
-import { blankPit, preparePit, type PitStatus } from "../model";
+import {
+  blankPit,
+  preparePit,
+  weightInputValue,
+  type PitStatus,
+} from "../model";
 import { claimPit } from "../server/actions";
 import { PitCapabilities } from "./fields";
 import { AutoRoutines } from "./routines";
@@ -70,7 +75,8 @@ export function PitForm({ context }: { context: Context }) {
       data.fuel_capacity.kind === "approximate_count"
         ? String(data.fuel_capacity.amount)
         : "",
-    );
+    ),
+    [weightNumeric, setWeightNumeric] = useState(weightInputValue(data));
   const other =
       context.claimedBy !== null && context.claimedBy !== context.actorId,
     [takeover, setTakeover] = useState(false);
@@ -87,6 +93,7 @@ export function PitForm({ context }: { context: Context }) {
           setRevision(saved.revision);
           setCapacityMode(saved.capacityMode);
           setNumeric(saved.numeric);
+          setWeightNumeric(weightInputValue(saved.data, saved.weightNumeric));
           setClaimed(saved.claimed);
           setMessage("Recovered your pit draft from this device.");
         } else if (!clientId) setClientId(crypto.randomUUID());
@@ -107,6 +114,7 @@ export function PitForm({ context }: { context: Context }) {
     revision,
     capacityMode,
     numeric,
+    weightNumeric,
     claimed,
   });
   useEffect(() => {
@@ -216,10 +224,10 @@ export function PitForm({ context }: { context: Context }) {
     }
     let payload: RebuiltPitData;
     try {
-      payload = preparePit(data, capacityMode, numeric);
+      payload = preparePit(data, capacityMode, numeric, weightNumeric);
     } catch {
       setError(
-        "Check the shooter type, capacity and routine details. Other requires a shooter description; an approximate capacity must be a whole number from 0 to 10,000.",
+        "Check the robot weight, shooter type, capacity and routine details. Weight must be greater than zero when supplied; an approximate capacity must be a whole number from 0 to 10,000.",
       );
       return;
     }
@@ -314,8 +322,7 @@ export function PitForm({ context }: { context: Context }) {
               : "Event archived"}
           </h2>
           <p className="mt-2">
-            This report cannot be casually overwritten. Ask a strategy lead or
-            administrator to review corrections.
+            Corrections require a strategy lead or administrator.
           </p>
           {prior?.success && (
             <div className="mt-4 rounded-control bg-background p-3">
@@ -329,6 +336,10 @@ export function PitForm({ context }: { context: Context }) {
                 {prior.data.fuel_capacity.kind === "approximate_count"
                   ? `about ${prior.data.fuel_capacity.amount} FUEL`
                   : prior.data.fuel_capacity.band}
+                . Weight:{" "}
+                {prior.data.robot_weight_lbs === null
+                  ? "Unknown"
+                  : `${prior.data.robot_weight_lbs} lb (robot only; battery and bumpers excluded)`}
                 . Auto routines: {prior.data.autonomous_routines?.length ?? 0}.
               </p>
             </div>
@@ -343,8 +354,8 @@ export function PitForm({ context }: { context: Context }) {
           </h2>
           <p className="my-3 text-muted">
             {other
-              ? "Their draft stays with them. Take over deliberately if you are handling this team now."
-              : "Claim this team before entering answers, so another scout sees that work has begun."}
+              ? "Take over only if you are scouting this team. Their draft is preserved."
+              : "Begin to mark this team as in progress."}
           </p>
           {other && (
             <label className="flex min-h-12 items-center gap-3">
@@ -354,7 +365,7 @@ export function PitForm({ context }: { context: Context }) {
                 checked={takeover}
                 onChange={(e) => setTakeover(e.target.checked)}
               />
-              I will take over this team; previous work remains for review.
+              Take over this team; preserve previous work.
             </label>
           )}
           <Button
@@ -379,6 +390,8 @@ export function PitForm({ context }: { context: Context }) {
               setCapacityMode={setCapacityMode}
               numeric={numeric}
               setNumeric={setNumeric}
+              weightNumeric={weightNumeric}
+              setWeightNumeric={setWeightNumeric}
             />
           </Card>
           <AutoRoutines
@@ -389,10 +402,6 @@ export function PitForm({ context }: { context: Context }) {
             <label htmlFor="pit-strategy-note" className="block font-bold">
               Strategy note (optional)
             </label>
-            <p className="my-2 text-sm text-muted">
-              Mention unusual details only when they matter. This is a pit
-              claim, not a match observation.
-            </p>
             <textarea
               id="pit-strategy-note"
               maxLength={500}

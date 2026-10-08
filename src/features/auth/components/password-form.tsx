@@ -3,6 +3,11 @@ import { useActionState } from "react";
 import { changePasswordAction } from "../server/password-action";
 import { Input } from "@/components/ui/fields";
 import { Button } from "@/components/ui/button";
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  PASSWORD_LENGTH_HINT,
+} from "@/lib/auth/password-policy";
 export function PasswordForm() {
   const [state, action, pending] = useActionState(changePasswordAction, {});
   return (
@@ -22,10 +27,10 @@ export function PasswordForm() {
           label="New password"
           type="password"
           autoComplete="new-password"
-          minLength={16}
-          maxLength={128}
+          minLength={MIN_PASSWORD_LENGTH}
+          maxLength={MAX_PASSWORD_LENGTH}
           required
-          hint="At least 16 characters. Use a unique password or passphrase."
+          hint={`${PASSWORD_LENGTH_HINT} Use a unique password or passphrase.`}
         />
         <Input
           id="confirm-password"
@@ -33,8 +38,8 @@ export function PasswordForm() {
           label="Confirm new password"
           type="password"
           autoComplete="new-password"
-          minLength={16}
-          maxLength={128}
+          minLength={MIN_PASSWORD_LENGTH}
+          maxLength={MAX_PASSWORD_LENGTH}
           required
         />
         <Button type="submit">

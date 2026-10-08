@@ -161,6 +161,9 @@ export async function getTeamDirectory(
         pitMap.get(member.team_number)?.primary_scoring_mechanism ?? "unknown",
       pitReported: pitMap.has(member.team_number),
       pitOtherType: pitMap.get(member.team_number)?.other_shooter_type ?? null,
+      pitRobotWeightLbs:
+        pitMap.get(member.team_number)?.robot_weight_lbs ?? null,
+      pitDrivetrain: pitMap.get(member.team_number)?.drivetrain ?? "unknown",
       rank: rank?.rank ?? null,
       wins: rank?.wins ?? null,
       losses: rank?.losses ?? null,

@@ -6,7 +6,7 @@ export default function EventError({ reset }: { reset: () => void }) {
   return (
     <ErrorState
       title="Workspace unavailable"
-      description="We could not load this workspace. Check your connection and try again. If this continues, ask an administrator to check account access and database setup."
+      description="Check your connection and retry. If this continues, contact an administrator."
       action={
         <div className="flex flex-wrap gap-3">
           <Button onClick={reset}>Try again</Button>

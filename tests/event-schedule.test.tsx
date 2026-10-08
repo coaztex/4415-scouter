@@ -18,6 +18,7 @@ import {
   resultLabel,
   matchTimeLabel,
   currentEvidenceExpiresAt,
+  type OfficialMatch,
 } from "../src/features/event-schedule/model";
 import { eventTime, isEventTimezone } from "../src/features/events/timezone";
 import { MatchCard } from "../src/features/event-schedule/components/match-card";
@@ -27,10 +28,7 @@ import type { Json } from "../src/types/database";
 const id = (n: number) =>
   `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const match = (
-  overrides: Omit<
-    Partial<Parameters<typeof isPlayed>[0]>,
-    "result_metadata"
-  > & {
+  overrides: Omit<Partial<OfficialMatch>, "result_metadata"> & {
     result_metadata?: Json;
   } = {},
 ) => ({
@@ -255,6 +253,7 @@ test("team pills link to Team pages while the match-card link targets Match Deta
             team_number: 3476,
             alliance: "red",
             station: 1,
+            stationLabel: "R1",
             coverage: { state: "missing", count: 0 },
           },
           {
@@ -262,6 +261,7 @@ test("team pills link to Team pages while the match-card link targets Match Deta
             team_number: 4415,
             alliance: "blue",
             station: 1,
+            stationLabel: "B1",
             coverage: { state: "complete", count: 1 },
           },
         ],

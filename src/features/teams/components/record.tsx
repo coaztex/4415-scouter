@@ -66,8 +66,8 @@ export function ScoutingRecord({
           {(data.post_match.reliability === "DNS" ||
             data.post_match.reliability === "DNF") && (
             <p className="mt-2 text-sm text-muted">
-              Availability status is counted in reliability; this partial or
-              absent output is excluded from default offensive averages.
+              DNS/DNF counts toward reliability; FUEL is excluded from offensive
+              averages.
             </p>
           )}
         </Card>
@@ -135,16 +135,14 @@ export function ScoutingRecord({
             </p>
           </div>
         ) : (
-          <p className="mt-3 text-muted">
-            Activity timing was not recorded or was deliberately omitted.
-          </p>
+          <p className="mt-3 text-muted">Activity timing unknown.</p>
         )}
       </Card>
       {incidents.some((incident) => incident.confirmed_cause) && (
         <Card>
           <h2 className="text-xl font-bold">Later confirmed causes</h2>
           <p className="mt-1 text-sm text-muted">
-            These reviewer findings do not change the scout observations above.
+            Confirmed separately from scout observations.
           </p>
           <div className="mt-3 space-y-3">
             {incidents

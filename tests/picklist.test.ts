@@ -11,6 +11,7 @@ import {
   moveTeam,
   percentile,
   pickTeam,
+  profileIds,
   profileLabels,
   profileMetrics,
   scoreTeams,
@@ -21,6 +22,12 @@ import {
   snapshotEvidence,
   snapshotSchema,
 } from "../src/features/picklist/snapshot";
+import {
+  compareRobotWeight,
+  emptyPitSpecFilters,
+  filterByPitSpecs,
+  weightRange,
+} from "../src/features/picklist/filters";
 
 function team(
   number: number,
@@ -35,6 +42,8 @@ function team(
     pitMechanism: "unknown",
     pitReported: false,
     pitOtherType: null,
+    pitRobotWeightLbs: null,
+    pitDrivetrain: "unknown",
     rank: null,
     wins: null,
     losses: null,
@@ -60,6 +69,37 @@ function team(
     })),
   });
 }
+test("picklist view model and snapshots carry normalized pit specifications with legacy defaults", () => {
+  const reported: PickTeam = {
+    ...team(1, []),
+    robotWeightLbs: 112.4,
+    drivetrain: "swerve",
+    mechanism: "turret",
+  };
+  const snapshot = snapshotEvidence(
+    [reported],
+    defaultState(),
+    null,
+    "offense",
+  );
+  assert.equal(snapshot.teams[0].robotWeightLbs, 112.4);
+  assert.equal(snapshot.teams[0].drivetrain, "swerve");
+  assert.equal(snapshot.teams[0].mechanism, "turret");
+  assert.equal(team(2, []).robotWeightLbs, null);
+  const legacyEvidence = { ...snapshot.teams[0] } as Record<string, unknown>;
+  delete legacyEvidence.robotWeightLbs;
+  delete legacyEvidence.drivetrain;
+  assert.equal(
+    snapshotSchema.parse({ ...snapshot, teams: [legacyEvidence] }).teams[0]
+      .robotWeightLbs,
+    null,
+  );
+  assert.equal(
+    snapshotSchema.parse({ ...snapshot, teams: [legacyEvidence] }).teams[0]
+      .drivetrain,
+    "unknown",
+  );
+});
 function fuel(amount: number) {
   const d = matchData();
   d.teleop.estimated_fuel_scored = amount;
@@ -295,4 +335,196 @@ test("configuration requires exclusion reasons and snapshots preserve all profil
   const restored = snapshotSchema.parse(earlierSnapshot);
   assert.equal(restored.teams[0].mechanism, "unknown");
   assert.equal(restored.teams[0].pitReported, false);
+});
+
+const specs = [
+  {
+    teamNumber: 1,
+    robotWeightLbs: 110,
+    drivetrain: "swerve",
+    mechanism: "drum",
+  },
+  {
+    teamNumber: 2,
+    robotWeightLbs: 112.4,
+    drivetrain: "swerve",
+    mechanism: "turret",
+  },
+  {
+    teamNumber: 3,
+    robotWeightLbs: 120,
+    drivetrain: "tank",
+    mechanism: "turret",
+  },
+  {
+    teamNumber: 4,
+    robotWeightLbs: null,
+    drivetrain: "unknown",
+    mechanism: "unknown",
+  },
+  {
+    teamNumber: 5,
+    robotWeightLbs: null,
+    drivetrain: "swerve",
+    mechanism: "other",
+  },
+] satisfies Pick<
+  PickTeam,
+  "teamNumber" | "robotWeightLbs" | "drivetrain" | "mechanism"
+>[];
+const numbers = (rows: { teamNumber: number }[]) =>
+  rows.map((row) => row.teamNumber);
+
+test("pit filters combine categories with AND and selections within each category with OR", () => {
+  const filters = emptyPitSpecFilters();
+  assert.deepEqual(numbers(filterByPitSpecs(specs, filters)), [1, 2, 3, 4, 5]);
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, drivetrains: ["swerve"] })),
+    [1, 2, 5],
+  );
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, shooters: ["turret"] })),
+    [2, 3],
+  );
+  assert.deepEqual(
+    numbers(
+      filterByPitSpecs(specs, {
+        ...filters,
+        drivetrains: ["swerve", "tank"],
+        shooters: ["drum", "turret"],
+      }),
+    ),
+    [1, 2, 3],
+  );
+  assert.deepEqual(
+    numbers(
+      filterByPitSpecs(specs, {
+        ...filters,
+        drivetrains: ["swerve"],
+        shooters: ["drum", "turret"],
+        maxWeight: "115",
+      }),
+    ),
+    [1, 2],
+  );
+  assert.deepEqual(
+    numbers(
+      filterByPitSpecs(specs, {
+        ...filters,
+        drivetrains: ["swerve"],
+        shooters: ["turret"],
+        maxWeight: "115",
+      }),
+    ),
+    [2],
+  );
+  assert.deepEqual(
+    numbers(
+      filterByPitSpecs(specs, {
+        ...filters,
+        drivetrains: ["unknown"],
+        shooters: ["unknown"],
+      }),
+    ),
+    [4],
+  );
+});
+
+test("weight limits are optional, inclusive and decimal; unknown never satisfies an active range", () => {
+  const filters = emptyPitSpecFilters();
+  assert.deepEqual(weightRange(filters), { min: null, max: null, error: null });
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, minWeight: "112.4" })),
+    [2, 3],
+  );
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, maxWeight: "112.4" })),
+    [1, 2],
+  );
+  assert.deepEqual(
+    numbers(
+      filterByPitSpecs(specs, {
+        ...filters,
+        minWeight: "112.4",
+        maxWeight: "112.4",
+      }),
+    ),
+    [2],
+  );
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, minWeight: "0" })),
+    [1, 2, 3],
+  );
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, maxWeight: "0" })),
+    [],
+  );
+  assert.deepEqual(
+    numbers(filterByPitSpecs(specs, { ...filters, maxWeight: "9999" })),
+    [1, 2, 3],
+  );
+  for (const limits of [
+    { minWeight: "-1" },
+    { maxWeight: "Infinity" },
+    { minWeight: "abc" },
+    { minWeight: "120", maxWeight: "110" },
+  ]) {
+    const invalid = { ...filters, ...limits };
+    assert.ok(weightRange(invalid).error);
+    assert.deepEqual(filterByPitSpecs(specs, invalid), []);
+  }
+  assert.equal(specs[3].robotWeightLbs, null);
+});
+
+test("weight sort is numeric, unknown last in either direction and does not mutate saved order", () => {
+  const order = [5, 3, 2, 1, 4];
+  const sorted = (direction: "weight_asc" | "weight_desc") =>
+    [...specs].sort(
+      (a, b) =>
+        compareRobotWeight(a.robotWeightLbs, b.robotWeightLbs, direction) ||
+        a.teamNumber - b.teamNumber,
+    );
+  assert.deepEqual(numbers(sorted("weight_asc")), [1, 2, 3, 4, 5]);
+  assert.deepEqual(numbers(sorted("weight_desc")), [3, 2, 1, 4, 5]);
+  assert.equal(compareRobotWeight(112.4, 112.4, "weight_desc"), 0);
+  assert.equal(compareRobotWeight(null, null, "weight_asc"), 0);
+  assert.deepEqual(order, [5, 3, 2, 1, 4]);
+});
+
+test("pit specifications, filtering and weight sorting cannot become profile scoring inputs", () => {
+  const candidates = [
+    team(1, repeated(30)),
+    team(2, repeated(20)),
+    team(3, repeated(10)),
+  ];
+  const state = defaultState();
+  state.strategy.needs = "Add a scorer";
+  state.profiles.complement.weights = { fuel: 100 };
+  const saved = JSON.stringify(state);
+  const initial = profileIds.map((id) =>
+    scoreTeams(candidates, state.profiles[id]),
+  );
+  candidates[0].robotWeightLbs = 130;
+  candidates[0].drivetrain = "tank";
+  candidates[0].mechanism = "drum";
+  candidates[1].robotWeightLbs = 112.4;
+  candidates[1].drivetrain = "swerve";
+  candidates[1].mechanism = "turret";
+  const filtered = filterByPitSpecs(candidates, {
+    ...emptyPitSpecFilters(),
+    maxWeight: "115",
+    drivetrains: ["swerve"],
+    shooters: ["turret"],
+  });
+  assert.deepEqual(numbers(filtered), [2]);
+  assert.deepEqual(
+    profileIds.map((id) => scoreTeams(candidates, state.profiles[id])),
+    initial,
+  );
+  assert.equal(initial[0].find((row) => row.teamNumber === 2)?.score, 50);
+  assert.equal(JSON.stringify(state), saved);
+  assert.deepEqual(
+    numbers(filterByPitSpecs(candidates, emptyPitSpecFilters())),
+    [1, 2, 3],
+  );
 });

@@ -46,10 +46,7 @@ export async function SchedulingWorkspace({
     : [];
   return (
     <div className="space-y-6">
-      <PageHeading
-        eyebrow="Team operations"
-        title="Scout Scheduling"
-      />
+      <PageHeading eyebrow="Team operations" title="Scout Scheduling" />
       {events.length > 0 && (
         <form action={basePath} className="flex flex-wrap items-end gap-3">
           <Select
@@ -72,7 +69,7 @@ export async function SchedulingWorkspace({
       {!snapshot ? (
         <EmptyState
           title="No events available"
-          description="An administrator must import an event and match roster first."
+          description="Ask an admin to import the event and schedule."
         />
       ) : (
         <>
@@ -115,7 +112,7 @@ export async function SchedulingWorkspace({
             {!assignments.length && (
               <EmptyState
                 title="No assignments yet"
-                description="Generate a preview or add a break/assignment above."
+                description="Generate a schedule or add an assignment."
               />
             )}
             {assignments.slice((page - 1) * 25, page * 25).map((a) => {

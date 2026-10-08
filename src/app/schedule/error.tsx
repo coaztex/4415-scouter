@@ -5,7 +5,7 @@ export default function Error({ reset }: { reset: () => void }) {
   return (
     <ErrorState
       title="Schedule unavailable"
-      description="Check the connection and scheduling migrations, then retry."
+      description="Check your connection and retry. If this continues, contact an administrator."
       action={<Button onClick={reset}>Retry</Button>}
     />
   );

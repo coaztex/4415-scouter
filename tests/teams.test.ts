@@ -21,6 +21,8 @@ const base = (teamNumber: number): TeamDirectoryRow => ({
   pitMechanism: "unknown",
   pitReported: false,
   pitOtherType: null,
+  pitRobotWeightLbs: null,
+  pitDrivetrain: "unknown",
   rank: null,
   wins: null,
   losses: null,

@@ -27,7 +27,7 @@ export default async function EventsPage() {
           description={
             profile.role === "admin"
               ? "Add your first event using its TBA event key."
-              : "Your team administrator will add events here when they are ready."
+              : "Ask an admin to add an event."
           }
         />
       ) : (

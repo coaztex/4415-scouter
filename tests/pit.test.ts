@@ -7,6 +7,7 @@ import {
   blankPit,
   newRoutine,
   preparePit,
+  weightInputValue,
   visibleTeams,
   type TeamListRow,
 } from "../src/features/pit/model";
@@ -36,6 +37,63 @@ test("revised pit schema accepts numeric, qualitative, and unknown capacity", ()
   for (const count of ["", "1.5", "-1", "10001", "unknown"]) {
     assert.throws(() => preparePit(blank, "approximate_count", count));
   }
+});
+
+test("robot-only weight accepts integers and decimals, and blank persists as null", () => {
+  const blank = blankPit();
+  assert.equal(blank.robot_weight_lbs, null);
+  assert.equal(preparePit(blank, "band", "", "112").robot_weight_lbs, 112);
+  assert.equal(preparePit(blank, "band", "", "112.4").robot_weight_lbs, 112.4);
+  assert.equal(preparePit(blank, "band", "", " ").robot_weight_lbs, null);
+  assert.equal(
+    preparePit({ ...blank, robot_weight_lbs: 112.4 }, "band", "", "")
+      .robot_weight_lbs,
+    null,
+  );
+  for (const value of ["0", "-1", "not a number", "Infinity"]) {
+    assert.throws(() => preparePit(blank, "band", "", value));
+  }
+  assert.equal(
+    rebuiltPitSchema.safeParse({ ...blank, robot_weight_lbs: -1 }).success,
+    false,
+  );
+  assert.equal(
+    rebuiltPitSchema.safeParse({ ...blank, robot_weight_lbs: "112.4" }).success,
+    false,
+  );
+});
+
+test("version-2 legacy pit reports and device drafts restore without weight", () => {
+  const legacy = { ...pitData() } as Partial<ReturnType<typeof pitData>>;
+  delete legacy.robot_weight_lbs;
+  assert.equal(rebuiltPitSchema.parse(legacy).robot_weight_lbs, null);
+  const oldDraft = pitDeviceDraftSchema.parse({
+    data: legacy,
+    clientId: id(92),
+    revision: 2,
+    capacityMode: "band",
+    numeric: "",
+    claimed: true,
+  });
+  assert.equal(oldDraft.data.robot_weight_lbs, null);
+  assert.equal(oldDraft.weightNumeric, undefined);
+  assert.equal(weightInputValue(oldDraft.data, oldDraft.weightNumeric), "");
+  const edited = pitDeviceDraftSchema.parse({
+    ...oldDraft,
+    data: { ...oldDraft.data, robot_weight_lbs: 112.4 },
+    weightNumeric: "112.4",
+  });
+  assert.equal(edited.weightNumeric, "112.4");
+  assert.equal(weightInputValue(edited.data, edited.weightNumeric), "112.4");
+  assert.equal(
+    preparePit(
+      edited.data,
+      edited.capacityMode,
+      edited.numeric,
+      edited.weightNumeric,
+    ).robot_weight_lbs,
+    112.4,
+  );
 });
 
 test("older pit records and device drafts resolve missing mechanism to Unknown", () => {

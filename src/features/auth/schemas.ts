@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { profileValues, temporaryPassword } from "@/features/admin/schemas";
+import { profileValues } from "@/features/admin/schemas";
+import { passwordSchema } from "@/lib/auth/password-policy";
 
 export const accountEmail = z
   .string()
@@ -9,7 +10,7 @@ export const accountEmail = z
 export const resetIdentifier = z.string().trim().toLowerCase().min(1).max(254);
 export const passwordChangeInput = z
   .object({
-    password: temporaryPassword,
+    password: passwordSchema,
     confirm_password: z.string(),
   })
   .refine((value) => value.password === value.confirm_password, {
@@ -21,7 +22,7 @@ export const registrationInput = z
     display_name: profileValues.shape.display_name,
     username: profileValues.shape.username,
     email: accountEmail,
-    password: temporaryPassword,
+    password: passwordSchema,
     confirm_password: z.string(),
   })
   .refine((value) => value.password === value.confirm_password, {

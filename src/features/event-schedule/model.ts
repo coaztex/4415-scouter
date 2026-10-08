@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { eventTime } from "@/features/events/timezone";
+export type { MatchStation } from "@/features/events/match-stations";
 
 export type OfficialMatch = {
   id: string;
@@ -12,12 +13,6 @@ export type OfficialMatch = {
   winning_alliance: "red" | "blue" | null;
   result_metadata: unknown;
 };
-export type MatchStation = {
-  match_id: string;
-  team_number: number;
-  alliance: "red" | "blue";
-  station: number;
-};
 export const groups = ["all", "qual", "playoff", "final"] as const;
 export type MatchGroup = (typeof groups)[number];
 export const groupLabels: Record<MatchGroup, string> = {
@@ -29,7 +24,12 @@ export const groupLabels: Record<MatchGroup, string> = {
 export function matchGroup(level: string): Exclude<MatchGroup, "all"> {
   return level === "qm" ? "qual" : level === "f" ? "final" : "playoff";
 }
-export function orderedMatches<T extends OfficialMatch>(matches: readonly T[]) {
+export function orderedMatches<
+  T extends Pick<
+    OfficialMatch,
+    "comp_level" | "set_number" | "match_number" | "tba_match_key"
+  >,
+>(matches: readonly T[]) {
   const level = (value: string) =>
     ({ qm: 0, ef: 1, qf: 2, sf: 3, f: 4 })[value] ?? 5;
   return [...matches].sort(
@@ -40,7 +40,10 @@ export function orderedMatches<T extends OfficialMatch>(matches: readonly T[]) {
       a.tba_match_key.localeCompare(b.tba_match_key),
   );
 }
-export function officialMatchLabel(match: OfficialMatch, long = false) {
+export function officialMatchLabel(
+  match: Pick<OfficialMatch, "comp_level" | "set_number" | "match_number">,
+  long = false,
+) {
   if (match.comp_level === "qm")
     return `${long ? "Qual " : "Q"}${match.match_number}`;
   if (match.comp_level === "f")
@@ -60,7 +63,7 @@ export function readableMatchLabel(match: OfficialMatch) {
     ] ?? `Match ${match.comp_level.toUpperCase()}`;
   return `${phase} ${match.set_number}${match.match_number > 1 ? ` · Match ${match.match_number}` : ""}`;
 }
-export function matchScores(match: OfficialMatch) {
+export function matchScores(match: Pick<OfficialMatch, "result_metadata">) {
   const raw = z
     .object({ red_score: z.number().int(), blue_score: z.number().int() })
     .safeParse(match.result_metadata);
@@ -69,7 +72,7 @@ export function matchScores(match: OfficialMatch) {
     blue: raw.success && raw.data.blue_score >= 0 ? raw.data.blue_score : null,
   };
 }
-export function isPlayed(match: OfficialMatch) {
+export function isPlayed(match: Pick<OfficialMatch, "result_metadata">) {
   const scores = matchScores(match);
   // TBA actual_time is a start signal; it does not establish a posted result.
   return scores.red !== null && scores.blue !== null;

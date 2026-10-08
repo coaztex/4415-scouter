@@ -8,6 +8,11 @@ export function getTbaEnvironment(): { key: string } {
   return { key };
 }
 
+export function getOptionalNexusEnvironment(): { key: string } | null {
+  const key = process.env.NEXUS_API_KEY?.trim();
+  return key ? { key } : null;
+}
+
 export function getServerSupabaseEnvironment() {
   return getPublicSupabaseEnvironment();
 }

@@ -28,8 +28,7 @@ export function ManualAssignmentEditor({
   if (assignment && isProtected(assignment))
     return (
       <p className="text-sm text-muted">
-        Protected: scouting has started, this row is completed, or a record is
-        attached. No reassignment or casual correction.
+        Locked: scouting started, completed, or submitted.
       </p>
     );
   return (
@@ -121,10 +120,8 @@ export function ManualAssignmentEditor({
             </>
           )}
           <p className="text-sm text-muted sm:col-span-2">
-            Only imported team/station combinations are valid. Submitted and
-            in-progress work stays locked. Selecting an occupied scout or
-            station swaps the affected editable rows in the same match. All
-            affected rows are checked for attached work.
+            Occupied scouts or stations swap within the match. Started and
+            submitted assignments stay locked.
           </p>
           <label className="flex min-h-12 items-center gap-3 sm:col-span-2">
             <input

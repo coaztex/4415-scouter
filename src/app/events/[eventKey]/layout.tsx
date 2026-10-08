@@ -36,7 +36,7 @@ export default async function EventLayout({
         >
           {event.last_tba_sync_at
             ? `Official TBA cache may be stale. Last synced ${eventTime(event.last_tba_sync_at, event.timezone) ?? "at an unavailable time"}.`
-            : "Official TBA data has not been synced for this event. Cached schedules and external metrics may be unavailable."}
+            : "TBA data not synced; schedule and metrics may be unavailable."}
         </p>
       )}
       {children}

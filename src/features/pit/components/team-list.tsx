@@ -8,9 +8,11 @@ import { visibleTeams, type TeamFilter, type TeamListRow } from "../model";
 export function PitTeamList({
   eventKey,
   rows,
+  onSearchChange,
 }: {
   eventKey: string;
   rows: TeamListRow[];
+  onSearchChange?: (term: string) => void;
 }) {
   const [term, setTerm] = useState(""),
     [filter, setFilter] = useState<TeamFilter>("all"),
@@ -27,7 +29,10 @@ export function PitTeamList({
           label="Find a team"
           placeholder="Team number or nickname"
           value={term}
-          onChange={(e) => setTerm(e.target.value)}
+          onChange={(e) => {
+            setTerm(e.target.value);
+            onSearchChange?.(e.target.value);
+          }}
         />
         <Select
           id="pit-filter"
@@ -43,7 +48,7 @@ export function PitTeamList({
       {!rows.length ? (
         <EmptyState
           title="No teams imported"
-          description="An administrator must sync the event team roster first."
+          description="Ask an admin to sync the team roster."
         />
       ) : !shown.length ? (
         <EmptyState
@@ -64,6 +69,11 @@ export function PitTeamList({
               </div>
               {row.nickname && (
                 <p className="mt-2 text-muted">{row.nickname}</p>
+              )}
+              {row.pitLabel && (
+                <p className="mt-2 text-sm font-semibold">
+                  Pit: {row.pitLabel}
+                </p>
               )}
               {row.claimedBy && row.status === "in_progress" && (
                 <p className="mt-2 text-sm font-semibold">Scout working</p>

@@ -21,6 +21,7 @@ import { CoverageBadge } from "./coverage";
 import { MatchVideo } from "./video";
 import { FreshnessStatus } from "./freshness";
 import { CurrentExpiry } from "./current-expiry";
+import { boardHref } from "@/features/strategy-board/model";
 
 export function MatchDetails({
   data,
@@ -94,6 +95,14 @@ export function MatchDetails({
         >
           TBA ↗
         </a>
+        {
+          <Link
+            href={boardHref(event.tba_key, match.tba_match_key)}
+            className={buttonStyles("secondary")}
+          >
+            Strategy Board
+          </Link>
+        }
         {isAtLeastRole(profile.role, "strategy") && (
           <Link
             href={matchPrepHref(event.tba_key, match.tba_match_key)}
@@ -132,10 +141,7 @@ export function MatchDetails({
         </div>
       </section>
       {!data.coverageAvailable && (
-        <p role="status">
-          Scouting status unavailable. No missing or completed state has been
-          inferred.
-        </p>
+        <p role="status">Scouting status unavailable.</p>
       )}
       <div className="grid gap-4 md:grid-cols-2">
         {(["red", "blue"] as const).map((alliance) => (
@@ -220,10 +226,7 @@ export function MatchDetails({
               payload={raw.score_breakdown}
             />
           ) : (
-            <p className="text-muted">
-              Detailed score breakdown unavailable until an official result is
-              cached.
-            </p>
+            <p className="text-muted">Official score breakdown unavailable.</p>
           )}
         </Card>
       </div>
@@ -259,7 +262,7 @@ export function MatchDetails({
                   {team.coverage.state === "missing"
                     ? "No scouting record yet."
                     : team.coverage.state === "in_progress"
-                      ? "Scouting started; awaiting a final observation."
+                      ? "Scouting in progress."
                       : "No readable observation summary available."}
                 </p>
               )}

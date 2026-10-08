@@ -2,9 +2,18 @@ import { PageHeading } from "@/components/layout/page-heading";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
 import { adminEvents, cacheCounts } from "@/features/admin/server/queries";
-import { SyncControls } from "@/features/admin/components/event-controls";
-import { SyncStatus } from "@/features/admin/components/sync-status";
-import { getTbaEnvironment } from "@/lib/server/env";
+import {
+  SyncControls,
+  PitMapSyncControls,
+} from "@/features/admin/components/event-controls";
+import {
+  SyncStatus,
+  PitMapSyncStatus,
+} from "@/features/admin/components/sync-status";
+import {
+  getTbaEnvironment,
+  getOptionalNexusEnvironment,
+} from "@/lib/server/env";
 import { createServiceClient } from "@/lib/supabase/service";
 export const metadata = { title: "Data & Sync" };
 export default async function SyncPage() {
@@ -29,10 +38,7 @@ export default async function SyncPage() {
   );
   return (
     <>
-      <PageHeading
-        eyebrow="Administration"
-        title="Data & Sync"
-      />
+      <PageHeading eyebrow="Administration" title="Data & Sync" />
       <div className="mb-6 grid gap-4 md:grid-cols-2">
         <Card>
           <h2 className="text-xl font-bold">The Blue Alliance</h2>
@@ -40,8 +46,7 @@ export default async function SyncPage() {
             {tbaReady ? "Server key configured" : "Server key missing"}
           </p>
           <p className="mt-2 text-sm text-muted">
-            Event identity, teams, matches and rankings. Configuration does not
-            confirm provider availability.
+            Teams, matches and rankings.
           </p>
           <p className="mt-3 text-sm">
             Webhook:{" "}
@@ -68,7 +73,15 @@ export default async function SyncPage() {
           <h2 className="text-xl font-bold">Statbotics</h2>
           <p className="mt-3">Public API · no key required</p>
           <p className="mt-2 text-sm text-muted">
-            EPA cache updates independently. Failures preserve existing metrics.
+            EPA metrics · existing data preserved on failure.
+          </p>
+        </Card>
+        <Card>
+          <h2 className="text-xl font-bold">Nexus · Pit Maps</h2>
+          <p className="mt-3">
+            {getOptionalNexusEnvironment()
+              ? "Server key configured"
+              : "Optional server key missing"}
           </p>
         </Card>
       </div>
@@ -92,6 +105,11 @@ export default async function SyncPage() {
               </div>
               <SyncStatus states={event.event_sync_state} />
               <SyncControls eventKey={event.tba_key} />
+              <PitMapSyncStatus cache={event.pitMapCache} />
+              <PitMapSyncControls
+                eventKey={event.tba_key}
+                nexusEventKey={event.nexus_event_key}
+              />
             </Card>
           ))}
         </div>

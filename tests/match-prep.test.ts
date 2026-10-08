@@ -9,8 +9,13 @@ import {
   prepSummary,
   sharedStartSides,
   upcomingMatches,
+  selectPrepMatch,
+  prepMatchStatus,
+  matchLabel,
   type PrepMatch,
 } from "../src/features/match-prep/model";
+import { getMatchStations } from "../src/features/events/match-stations";
+import { readEventCachePages } from "../src/features/events/server/cache-pages";
 
 const eventId = "00000000-0000-4000-8000-000000000001";
 const id = (n: number) =>
@@ -100,5 +105,93 @@ test("observed role and FUEL confidence remain evidence based", () => {
       { teamNumber: 50, sides: ["left"] },
     ]),
     ["left: 25 & 50"],
+  );
+});
+
+test("explicit upcoming or historical selection overrides the real next match and survives reload", () => {
+  const matches = [
+    match(1, { red_score: 0, blue_score: 0 }),
+    match(3),
+    match(2),
+  ];
+  const stations = [
+    { match_id: id(2), team_number: 25, alliance: "red" as const, station: 2 },
+  ];
+  assert.equal(selectPrepMatch(matches, stations, 25).selected?.id, id(2));
+  for (const key of [matches[0].tba_match_key, matches[1].tba_match_key]) {
+    const selected = selectPrepMatch(matches, stations, 25, key);
+    assert.equal(selected.selected?.tba_match_key, key);
+    assert.equal(selected.invalidSelection, false);
+    assert.deepEqual(selectPrepMatch(matches, stations, 25, key), selected);
+  }
+  assert.equal(prepMatchStatus(matches[0]), "Completed");
+  assert.equal(prepMatchStatus(matches[1]), "Upcoming");
+  assert.equal(
+    prepMatchStatus({ ...match(4), actual_time: "2026-04-01T12:00:00Z" }),
+    "Started · result pending",
+  );
+  assert.equal(matchLabel(match(42)), "Q42");
+  assert.equal(matchLabel({ ...match(1), comp_level: "f" }), "F1");
+  assert.equal(
+    matchLabel({ ...match(1), comp_level: "sf", set_number: 2 }),
+    "SF2",
+  );
+});
+
+test("no upcoming match leaves manual browsing available; a changed event rejects stale selection", () => {
+  const completed = [match(1, { red_score: 100, blue_score: 50 })];
+  const stations = [
+    { match_id: id(1), team_number: 25, alliance: "red" as const, station: 1 },
+  ];
+  assert.equal(selectPrepMatch(completed, stations, 25).selected, null);
+  assert.equal(
+    selectPrepMatch(completed, stations, 25, completed[0].tba_match_key)
+      .selected?.id,
+    id(1),
+  );
+  assert.equal(selectPrepMatch(completed, stations, null).selected, null);
+  assert.equal(selectPrepMatch([], [], 25).selected, null);
+  const otherEvent = [{ ...match(2), tba_match_key: "2026other_qm2" }];
+  const stale = selectPrepMatch(otherEvent, [], 25, completed[0].tba_match_key);
+  assert.equal(stale.invalidSelection, true);
+  assert.equal(stale.selected, null);
+});
+
+test("canonical station helper preserves R1/R2/R3/B1/B2/B3 regardless of team or insertion order", () => {
+  const rows = [
+    { alliance: "blue", station: 3, team_number: 300 },
+    { alliance: "red", station: 2, team_number: 50 },
+    { alliance: "blue", station: 1, team_number: 900 },
+    { alliance: "red", station: 3, team_number: 1000 },
+    { alliance: "red", station: 1, team_number: 700 },
+    { alliance: "blue", station: 2, team_number: 20 },
+  ] as const;
+  const before = JSON.stringify(rows);
+  const lineup = getMatchStations(rows),
+    flat = [...lineup.red, ...lineup.blue];
+  assert.deepEqual(
+    flat.map((s) => s.stationLabel),
+    ["R1", "R2", "R3", "B1", "B2", "B3"],
+  );
+  assert.deepEqual(
+    flat.map((s) => s.team_number),
+    [700, 50, 1000, 900, 20, 300],
+  );
+  assert.equal(JSON.stringify(rows), before);
+  assert.deepEqual(getMatchStations([]), { red: [], blue: [] });
+});
+
+test("cached schedule reader includes later pages instead of truncating stations", async () => {
+  const rows = Array.from({ length: 1203 }, (_, id) => ({ id }));
+  const ranges: number[] = [];
+  const read = await readEventCachePages(async (from, to) => {
+    ranges.push(from);
+    return { data: rows.slice(from, to + 1), error: null };
+  });
+  assert.equal(read.length, 1203);
+  assert.deepEqual(ranges, [0, 500, 1000]);
+  await assert.rejects(
+    readEventCachePages(async () => ({ data: null, error: "unavailable" })),
+    /cache unavailable/,
   );
 });

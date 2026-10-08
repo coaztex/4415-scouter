@@ -16,6 +16,7 @@ export const pitDeviceDraftSchema = z.object({
   revision: z.number().int().min(0),
   capacityMode: z.enum(["approximate_count", "band"]),
   numeric: z.string().max(50),
+  weightNumeric: z.string().max(50).optional(),
   claimed: z.boolean(),
 });
 export function pitDraftKey(

@@ -91,8 +91,8 @@ export function DraftPanel({
           </h2>
           <p>
             {context.submitted
-              ? "This assignment is closed. Corrections require a separate review flow."
-              : "One phase at a time: Auto → Teleop → Post-match. Estimates and activity changes save on this device after each tap."}
+              ? "Assignment closed. Corrections require review."
+              : "Draft saves on this device."}
           </p>
           {!context.submitted && (
             <Button

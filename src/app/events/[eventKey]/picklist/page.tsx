@@ -13,10 +13,7 @@ export default async function PicklistPage({
   const workspace = await getPicklist(eventKey, snapshot);
   return (
     <>
-      <PageHeading
-        title="Picklist"
-        description="Rank teams using role-specific evidence and your own selection order."
-      />
+      <PageHeading title="Picklist" />
       <PicklistWorkspace key={snapshot ?? "live"} data={workspace} />
     </>
   );

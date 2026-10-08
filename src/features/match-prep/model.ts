@@ -1,6 +1,12 @@
 import { roleLabels, type TeamDirectoryRow } from "@/features/teams/model";
 import type { RebuiltPitData } from "@/games/2026-rebuilt/pit-schema";
 import type { MatchObservation } from "@/features/teams/model";
+import {
+  isPlayed,
+  officialMatchLabel,
+  orderedMatches,
+} from "@/features/event-schedule/model";
+import type { MatchStation } from "@/features/events/match-stations";
 
 export type PrepMatch = {
   id: string;
@@ -13,38 +19,33 @@ export type PrepMatch = {
   actual_time: string | null;
   result_metadata: unknown;
 };
-export type PrepStation = {
-  match_id: string;
-  team_number: number;
-  alliance: "red" | "blue";
-  station: number;
-};
-export const matchLabel = (match: PrepMatch) =>
-  `${match.comp_level.toUpperCase()}${match.comp_level === "qm" ? "" : `${match.set_number}-`}${match.match_number}`;
-const level = (value: string) =>
-  ({ qm: 0, ef: 1, qf: 2, sf: 3, f: 4 })[value] ?? 5;
+export type PrepStation = MatchStation;
+export const matchLabel = officialMatchLabel;
+export const prepMatchStatus = (match: PrepMatch) =>
+  isPlayed(match)
+    ? "Completed"
+    : match.actual_time
+      ? "Started · result pending"
+      : "Upcoming";
 export function upcomingMatches(matches: readonly PrepMatch[]) {
-  return matches
-    .filter((m) => {
-      const scores = m.result_metadata;
-      const scored =
-        scores !== null &&
-        typeof scores === "object" &&
-        "red_score" in scores &&
-        "blue_score" in scores &&
-        typeof scores.red_score === "number" &&
-        scores.red_score >= 0 &&
-        typeof scores.blue_score === "number" &&
-        scores.blue_score >= 0;
-      return !m.actual_time && !scored;
-    })
-    .sort(
-      (a, b) =>
-        level(a.comp_level) - level(b.comp_level) ||
-        a.set_number - b.set_number ||
-        a.match_number - b.match_number ||
-        a.tba_match_key.localeCompare(b.tba_match_key),
-    );
+  return orderedMatches(matches).filter(
+    (match) => !match.actual_time && !isPlayed(match),
+  );
+}
+/** The caller passes only the current event's cached matches. */
+export function selectPrepMatch(
+  matches: readonly PrepMatch[],
+  stations: readonly PrepStation[],
+  own: number | null,
+  selectedKey?: string,
+) {
+  const explicit = selectedKey
+    ? matches.find((match) => match.tba_match_key === selectedKey)
+    : null;
+  return {
+    selected: explicit ?? defaultMatch(matches, stations, own),
+    invalidSelection: !!selectedKey && !explicit,
+  };
 }
 export function defaultMatch(
   matches: readonly PrepMatch[],

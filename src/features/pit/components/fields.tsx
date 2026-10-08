@@ -45,6 +45,8 @@ export function PitCapabilities({
   setCapacityMode,
   numeric,
   setNumeric,
+  weightNumeric,
+  setWeightNumeric,
 }: {
   data: RebuiltPitData;
   change: (fn: (d: RebuiltPitData) => RebuiltPitData) => void;
@@ -52,6 +54,8 @@ export function PitCapabilities({
   setCapacityMode: (v: "approximate_count" | "band") => void;
   numeric: string;
   setNumeric: (v: string) => void;
+  weightNumeric: string;
+  setWeightNumeric: (v: string) => void;
 }) {
   const patch = (fields: Partial<RebuiltPitData>) =>
     change((d) => ({ ...d, ...fields }));
@@ -64,22 +68,39 @@ export function PitCapabilities({
       : [...(items ?? []), item];
   return (
     <div className="space-y-6">
+      <section aria-label="Robot specifications" className="space-y-3">
+        <h3 className="font-bold">Robot specifications</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Choice
+            id="pit-drivetrain"
+            label="Drivetrain"
+            value={data.drivetrain}
+            options={[
+              ["swerve", "Swerve"],
+              ["tank", "Tank"],
+              ["other", "Other"],
+              ["unknown", "Unknown"],
+            ]}
+            onChange={(drivetrain) => patch({ drivetrain })}
+          />
+          <div>
+            <Input
+              id="pit-robot-weight"
+              label="Robot weight (lb)"
+              type="number"
+              step="any"
+              placeholder="Unknown"
+              hint="Excludes battery and bumpers."
+              value={weightNumeric}
+              onChange={(e) => setWeightNumeric(e.target.value)}
+            />
+          </div>
+        </div>
+      </section>
       <section
         aria-label="Robot and scoring"
         className="grid gap-4 sm:grid-cols-2"
       >
-        <Choice
-          id="pit-drivetrain"
-          label="Drivetrain"
-          value={data.drivetrain}
-          options={[
-            ["swerve", "Swerve"],
-            ["tank", "Tank"],
-            ["other", "Other"],
-            ["unknown", "Unknown"],
-          ]}
-          onChange={(drivetrain) => patch({ drivetrain })}
-        />
         <fieldset className="sm:col-span-2">
           <legend className="text-sm font-bold">
             Primary scoring mechanism
@@ -137,12 +158,12 @@ export function PitCapabilities({
           {capacityMode === "approximate_count" ? (
             <Input
               id="pit-capacity-number"
-              label="Approximate number (not exact)"
+              label="Approximate FUEL count"
               type="number"
               min={0}
               max={10000}
               step={1}
-              placeholder="Ask only if the team knows"
+              placeholder="Unknown if not provided"
               value={numeric}
               onChange={(e) => setNumeric(e.target.value)}
             />
@@ -234,14 +255,11 @@ export function PitCapabilities({
               {value}
             </label>
           ))}
-          <p className="text-sm text-muted">
-            Select both for trench and bump capability.
-          </p>
         </fieldset>
       </section>
       <details className="rounded-control border border-border p-3">
         <summary className="min-h-12 cursor-pointer py-3 font-bold">
-          Climbing · lower priority
+          Climbing
         </summary>
         <div className="grid gap-4 sm:grid-cols-2">
           <Choice

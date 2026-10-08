@@ -7,13 +7,15 @@ import {
   observationCount,
 } from "./shared";
 import { autoClimb } from "./match-schema";
-import { scoringMechanisms } from "./pit-options";
+import { drivetrains, scoringMechanisms } from "./pit-options";
 export { scoringMechanisms, scoringMechanismLabels } from "./pit-options";
 export type { ScoringMechanism } from "./pit-options";
 export const scoringMechanismSchema = z.enum(scoringMechanisms);
+export const drivetrainSchema = z.enum(drivetrains);
 export const rebuiltPitBaseSchema = z.strictObject({
   photo_media_ids: z.array(z.uuid()).max(10).refine(uniqueItems).optional(),
-  drivetrain: z.enum(["swerve", "tank", "other", "unknown"]),
+  drivetrain: drivetrainSchema,
+  robot_weight_lbs: z.number().finite().positive().nullable().default(null),
   primary_scoring_mechanism: scoringMechanismSchema.default("unknown"),
   other_shooter_type: z.string().trim().max(80).optional(),
   fuel_capacity: z.discriminatedUnion("kind", [

@@ -24,10 +24,7 @@ export function ScheduleGenerator({
   return (
     <Card>
       <h2 className="text-xl font-bold">Generate a schedule</h2>
-      <p className="my-3 text-muted">
-        Preview robot coverage before publishing. Existing submissions and
-        started assignments stay protected.
-      </p>
+      <p className="my-3 text-muted">Preview coverage before publishing.</p>
       <form
         id="schedule-generate-form"
         action={action}
@@ -129,9 +126,8 @@ export function ScheduleGenerator({
             </Select>
           </div>
           <p className="text-sm text-muted">
-            Coverage comes first. Extra scouts rotate through 2+ match break
-            blocks when feasible. Replace mode can change manual assignments;
-            protected work is preserved. Preview up to 200 matches at once.
+            Replace mode may change manual assignments; started work stays
+            locked. Preview up to 200 matches.
           </p>
           <Button
             type="submit"

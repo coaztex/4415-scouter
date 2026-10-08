@@ -70,14 +70,10 @@ export function PostFields({
           }
         />
       </div>
-      <p className="text-sm text-muted">
-        Very uncertain estimates are accepted. Review the three choices above
-        before submitting.
-      </p>
       {p.reliability === "DNS" && (
         <p role="status">
-          DNS: FUEL and activity are unknown, not zero. If DNS was mistaken,
-          exit and explicitly discard/restart this draft before scouting.
+          DNS: FUEL and activity are unknown. To undo DNS, discard this draft
+          and restart.
         </p>
       )}
       {p.reliability !== "DNS" && (

@@ -103,7 +103,7 @@ export async function ScoutScheduleList({
     <div className="space-y-6">
       <PageHeading
         title="Match Scouting"
-        description="Assignments and breaks in match order."
+        description="Your assignments and breaks."
       />
       {isAtLeastRole(profile.role, "strategy") && (
         <Link
@@ -118,7 +118,7 @@ export async function ScoutScheduleList({
           role="status"
           className="rounded-control border border-accent bg-accent-soft p-4 font-bold"
         >
-          Submission confirmed. Your next assignment is highlighted below.
+          Submission confirmed.
         </p>
       )}
       <section
@@ -141,7 +141,7 @@ export async function ScoutScheduleList({
         ) : (
           <EmptyState
             title="No pending assignments"
-            description="A lead can assign matches, or you have completed your current schedule."
+            description="Ask a lead for your next assignment."
           />
         )}
       </section>

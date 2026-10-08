@@ -68,17 +68,18 @@ This repository has `origin` set to `https://github.com/coaztex/4415-scouter.git
 3. Sign in to the intended Vercel account with `npx vercel login`. Run `npx vercel link` in this directory and select the correct scope and existing project. If no project exists, import `coaztex/4415-scouter` through the Vercel dashboard and connect its `main` production branch, then link this checkout. The local `.vercel` link is ignored by Git. Verify the linked project and Git integration in Vercel before deploying.
 4. In **Vercel → Project → Settings → Environment Variables**, set the following for **Production**. Also set them for **Preview** only if preview builds should connect to an appropriately isolated Supabase project and TBA account. Use **Development** only for `vercel dev` or `vercel env pull`; local `next dev` uses `.env.local` instead. Do not point an untrusted preview at production service credentials.
 
-   | Variable | Production | Preview / Development | Exposure |
-   | --- | --- | --- | --- |
-   | `NEXT_PUBLIC_SUPABASE_URL` | Required | Required when that environment is used | Public |
-   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Required | Required when that environment is used | Public |
-   | `SUPABASE_SERVICE_ROLE_KEY` | Required | Required only for isolated, trusted environments | Server only |
-   | `TBA_AUTH_KEY` | Required for import/sync | Required where import/sync is enabled | Server only |
-   | `TBA_REFRESH_INTERVAL_SECONDS` | Optional; defaults to 300 seconds | Optional | Server only |
-   | `TBA_WEBHOOK_SECRET` | Optional; required if webhook is enabled | Optional | Server only |
+   | Variable                               | Production                               | Preview / Development                            | Exposure    |
+   | -------------------------------------- | ---------------------------------------- | ------------------------------------------------ | ----------- |
+   | `NEXT_PUBLIC_SUPABASE_URL`             | Required                                 | Required when that environment is used           | Public      |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Required                                 | Required when that environment is used           | Public      |
+   | `SUPABASE_SERVICE_ROLE_KEY`            | Required                                 | Required only for isolated, trusted environments | Server only |
+   | `TBA_AUTH_KEY`                         | Required for import/sync                 | Required where import/sync is enabled            | Server only |
+   | `TBA_REFRESH_INTERVAL_SECONDS`         | Optional; defaults to 300 seconds        | Optional                                         | Server only |
+   | `TBA_WEBHOOK_SECRET`                   | Optional; required if webhook is enabled | Optional                                         | Server only |
 
    Statbotics needs no key. This app has no AI provider integration or app-base URL variable. Never give server secrets a `NEXT_PUBLIC_` prefix. Vercel supplies `VERCEL` automatically. [Environment variable changes apply only to new deployments](https://vercel.com/docs/environment-variables), so deploy again after changing them.
-5. In Supabase Auth, keep the Email provider and user signup enabled, disable **Confirm email**, and keep anonymous sign-ins disabled for this team-managed approval flow. This implementation uses password authentication and admin-managed resets; it does not use email confirmation/recovery redirects or an app-base URL. Review the Auth Site URL for general project hygiene after the production domain is known, but no redirect allowlist entry is required by the current flow.
+
+5. In Supabase Auth, keep the Email provider and user signup enabled, disable **Confirm email**, and keep anonymous sign-ins disabled for this team-managed approval flow. Set the hosted Email provider's minimum password length to **8**, matching the shared application policy and local `supabase/config.toml`; repository changes do not update the hosted policy. See [password-policy deployment notes](docs/AUTHENTICATION_UX.md#supabase-setup-before-deployment). This implementation uses password authentication and admin-managed resets; it does not use email confirmation/recovery redirects or an app-base URL. Review the Auth Site URL for general project hygiene after the production domain is known, but no redirect allowlist entry is required by the current flow.
 6. Before production deployment, sign in with a real active Scout account in a staging or authorized test environment, submit one assigned match, and verify it appears once after refresh. Exercise the offline queue in a disconnect/reconnect simulation. Do not submit synthetic observations into a real competition event. If no active Scout account exists, arrange one and complete this gate before deployment.
 7. Push the reviewed commit to the branch connected to Vercel, or use `npx vercel --prod` after confirming the linked project and environment values. Do not assume a successful local build is a production deployment. Record the resulting production URL and deployment ID.
 

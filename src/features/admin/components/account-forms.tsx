@@ -9,6 +9,11 @@ import { roles, type ProfileValues } from "../schemas";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/fields";
 import { Card } from "@/components/ui/card";
+import {
+  MIN_PASSWORD_LENGTH,
+  MAX_PASSWORD_LENGTH,
+  PASSWORD_LENGTH_HINT,
+} from "@/lib/auth/password-policy";
 function Result({ state }: { state: { error?: string; message?: string } }) {
   return (
     <>
@@ -75,9 +80,9 @@ export function CreateAccountForm() {
               label="Temporary password"
               autoComplete="new-password"
               required
-              minLength={16}
-              maxLength={128}
-              hint="Use a unique password of at least 16 characters. Share it privately."
+              minLength={MIN_PASSWORD_LENGTH}
+              maxLength={MAX_PASSWORD_LENGTH}
+              hint={`${PASSWORD_LENGTH_HINT} Use a unique password. Share it privately.`}
             />
           </div>
           <label className="flex min-h-12 items-start gap-3 py-3">
@@ -250,8 +255,7 @@ function AccountApprovalForm({
       <fieldset disabled={pending} className="space-y-3">
         <RoleSelect id={`approval-role-${id}`} />
         <p className="text-xs text-muted">
-          Approval defaults to Scout. Select Strategy or Admin only when those
-          permissions are intended.
+          Assign Strategy or Admin only when required.
         </p>
         <div className="flex flex-wrap gap-3">
           <Button type="submit" name="operation" value="approve">
@@ -314,9 +318,9 @@ export function PasswordResetRequestForm({
           type="password"
           label="Temporary password (optional)"
           autoComplete="off"
-          minLength={16}
-          maxLength={128}
-          hint="Enter a unique password of at least 16 characters, or leave blank to generate one."
+          minLength={MIN_PASSWORD_LENGTH}
+          maxLength={MAX_PASSWORD_LENGTH}
+          hint={`${PASSWORD_LENGTH_HINT} Use a unique password, or leave blank to generate one.`}
         />
         <div className="flex flex-wrap gap-3">
           <Button
@@ -347,8 +351,7 @@ export function PasswordResetRequestForm({
               {state.temporaryPassword}
             </code>
             <p className="mt-2 text-xs text-muted">
-              It is not stored here and disappears when you leave or refresh
-              this page. Refresh after copying to update the request list.
+              Copy before leaving or refreshing; this password is shown once.
             </p>
           </div>
         )}

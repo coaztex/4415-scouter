@@ -3,7 +3,10 @@ import {
   observedRoles,
   reliabilityStatuses,
 } from "@/games/2026-rebuilt/match-schema";
-import { scoringMechanismSchema } from "@/games/2026-rebuilt/pit-schema";
+import {
+  drivetrainSchema,
+  scoringMechanismSchema,
+} from "@/games/2026-rebuilt/pit-schema";
 import {
   metricIds,
   profileIds,
@@ -17,6 +20,8 @@ export function teamEvidence(team: PickTeam) {
     teamNumber: team.teamNumber,
     nickname: team.nickname,
     mechanism: team.mechanism,
+    robotWeightLbs: team.robotWeightLbs,
+    drivetrain: team.drivetrain,
     pitReported: team.pitReported,
     sampleSize: team.scouting.sampleSize,
     roles: team.scouting.roles.counts,
@@ -32,6 +37,8 @@ export const evidenceTeamSchema = z.object({
   teamNumber: z.number(),
   nickname: z.string().nullable(),
   mechanism: scoringMechanismSchema.default("unknown"),
+  robotWeightLbs: z.number().finite().positive().nullable().default(null),
+  drivetrain: drivetrainSchema.default("unknown"),
   pitReported: z.boolean().default(false),
   sampleSize: z.number(),
   roles: z.record(z.enum(observedRoles), z.number()),

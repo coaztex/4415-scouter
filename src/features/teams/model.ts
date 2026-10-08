@@ -49,6 +49,8 @@ export type TeamDirectoryRow = {
   pitMechanism: ScoringMechanism;
   pitReported: boolean;
   pitOtherType: string | null;
+  pitRobotWeightLbs: number | null;
+  pitDrivetrain: RebuiltPitData["drivetrain"];
   rank: number | null;
   wins: number | null;
   losses: number | null;

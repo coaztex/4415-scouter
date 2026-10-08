@@ -39,8 +39,7 @@ export function StatsSection({
   let supporting: React.ReactNode = null;
   switch (query.tab) {
     case "fuel":
-      note =
-        "Our scouting · completed estimates. Sorted by median TELEOP FUEL by default; best match is context, not the headline.";
+      note = "Scouted FUEL estimates.";
       columns = [
         {
           label: "Median TELEOP FUEL",
@@ -77,15 +76,14 @@ export function StatsSection({
       );
       break;
     case "activity":
-      note =
-        "Our scouting · share of usable timed TELEOP. Shuffling is the recorded activity state; shares describe time, not FUEL moved.";
+      note = "Scouted Teleop time shares, not FUEL volume.";
       columns = [
         {
           label: "Scoring time share",
           render: (r) => percent(r.metrics.activity.scoring.share.mean),
         },
         {
-          label: "Shuffling time share",
+          label: "Shuttling / Passing time share",
           render: (r) =>
             percent(r.metrics.activity.shuttling_passing.share.mean),
         },
@@ -94,22 +92,19 @@ export function StatsSection({
           render: (r) => percent(r.metrics.activity.defending.share.mean),
         },
         {
-          label: "Inactive / other time share",
+          label: "Other / Idle time share",
           render: (r) => percent(r.metrics.activity.other_idle.share.mean),
         },
         { label: "Role n", render: (r) => r.metrics.roles.sampleSize },
       ];
       supporting = (
         <p className="text-sm text-muted">
-          Defense effectiveness is a subjective scout rating; use the Rank by
-          control to inspect it separately. Shuttler role frequency uses the
-          recorded role category.
+          Defense effectiveness is a subjective scout rating.
         </p>
       );
       break;
     case "auto":
-      note =
-        "Our scouting · observed AUTO output and execution. Pit routine claims are separate from match results.";
+      note = "Observed Auto performance; pit routines are team reported.";
       columns = [
         {
           label: "Median AUTO FUEL",
@@ -151,15 +146,14 @@ export function StatsSection({
           </p>
           <p className="mt-2 text-sm text-muted">
             {rows.filter((r) => (r.claimedRoutines?.length ?? 0) > 0).length}{" "}
-            teams have pit-reported routines; open a team profile for the
-            claimed routine and observed matches.
+            teams have pit-reported routines.
           </p>
         </Card>
       );
       break;
     case "reliability":
       note =
-        "Our scouting · full-match includes normal, minor, and major-issue finishes. It is separate from FUEL production.";
+        "Full-match rate includes normal, minor-issue and major-issue finishes.";
       columns = [
         { label: "DNS", render: (r) => r.metrics.reliability.counts.DNS },
         { label: "DNF", render: (r) => r.metrics.reliability.counts.DNF },
@@ -206,7 +200,7 @@ export function StatsSection({
       break;
     case "external":
       note =
-        "Cached provider estimates. EPA is Statbotics; OPR, COPR, rank, and record are TBA. — means missing, not zero.";
+        "EPA: Statbotics · OPR/COPR, rank and record: TBA · — means unknown.";
       columns = [
         {
           label: "Statbotics components / cache",

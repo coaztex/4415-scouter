@@ -1,3 +1,5 @@
+import { hasPitGeometry } from "@/features/pit-map/model";
+import type { PitMapCache } from "@/features/pit-map/server/cache";
 type State = {
   source: "tba" | "statbotics";
   status: string;
@@ -31,6 +33,42 @@ export function SyncStatus({ states }: { states: State[] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+export function PitMapSyncStatus({ cache }: { cache: PitMapCache | null }) {
+  return (
+    <div className="my-4 rounded-control border border-border p-4 text-sm">
+      <h3 className="font-bold">Pit Map: {cache?.status ?? "Not synced"}</h3>
+      <p>
+        Source: {cache?.source ?? "Nexus"}
+        {cache?.sourceEventKey ? ` · ${cache.sourceEventKey}` : ""}
+      </p>
+      <p>Last synced: {cache?.fetchedAt ?? "Never"}</p>
+      <p>Assigned pits: {cache?.layout?.assignments.length ?? 0}</p>
+      <p>
+        Graphical geometry:{" "}
+        {hasPitGeometry(cache?.layout ?? null) ? "Available" : "Unavailable"}
+      </p>
+      {cache && (
+        <p className="text-muted">
+          Last attempt: {cache.lastAttemptAt}
+          {cache.lastAttemptKey && cache.lastAttemptKey !== cache.sourceEventKey
+            ? ` · ${cache.lastAttemptKey}`
+            : ""}
+        </p>
+      )}
+      {cache?.lastError && (
+        <p className="mt-2 text-danger">{cache.lastError}</p>
+      )}
+      <a
+        href="https://frc.nexus"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex min-h-11 items-center font-bold text-accent"
+      >
+        Nexus ↗
+      </a>
     </div>
   );
 }

@@ -25,7 +25,7 @@ export default async function Page({
     <div className="space-y-5">
       <PageHeading
         title="Incident Review"
-        description="Review scout-observed status and symptoms, then record a separately sourced cause when confirmed."
+        description="Observed symptoms and confirmed causes."
       />
       <nav aria-label="Incident filter" className="flex flex-wrap gap-2">
         {(["pending", "all", "confirmed"] as const).map((value) => (

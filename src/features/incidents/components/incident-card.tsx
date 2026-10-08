@@ -82,10 +82,7 @@ export function IncidentCard({
               )}
             </>
           ) : (
-            <p className="text-sm text-muted">
-              No cause confirmed. The observed symptom remains available for
-              review.
-            </p>
+            <p className="text-sm text-muted">Cause not confirmed.</p>
           )}
         </div>
       </div>

@@ -33,6 +33,18 @@ test("game envelope validates schema version, slug, and payload", () => {
     parseGameData(rebuilt2026, { ...envelope, game_data: pitData() }, "pit"),
     pitData(),
   );
+  const oldPit: Record<string, unknown> = { ...pitData() };
+  delete oldPit.robot_weight_lbs;
+  assert.equal(
+    (
+      parseGameData(
+        rebuilt2026,
+        { ...envelope, game_data: oldPit },
+        "pit",
+      ) as ReturnType<typeof pitData>
+    ).robot_weight_lbs,
+    null,
+  );
   assert.throws(() =>
     parseGameData(rebuilt2026, { ...envelope, schema_version: 3 }, "match"),
   );

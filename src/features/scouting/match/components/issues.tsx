@@ -48,8 +48,7 @@ export function IssueSheet({
         Robot issue
       </h2>
       <p className="my-3 text-sm text-muted">
-        Record what you saw. Activity continues unchanged; do not diagnose a
-        root cause.
+        Record observed symptoms, not a suspected cause.
       </p>
       <Choice
         label="Observed issue"

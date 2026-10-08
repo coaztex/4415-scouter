@@ -65,9 +65,6 @@ export default async function SettingsPage() {
           <h2 id="settings-appearance" className="text-lg font-semibold">
             Appearance
           </h2>
-          <p className="mb-4 mt-1 text-sm text-muted">
-            Choose how this device displays the workspace.
-          </p>
           <ThemeSelector />
         </section>
         <section
@@ -79,8 +76,7 @@ export default async function SettingsPage() {
             Sync & offline
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Device submissions stay available here until the server confirms
-            them.
+            Device submissions are kept until sync is confirmed.
           </p>
           <div className="mt-3">
             <SyncIndicator />

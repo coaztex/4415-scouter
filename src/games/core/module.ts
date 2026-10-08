@@ -45,6 +45,21 @@ export interface GameModule<
   ): EventAggregate<A>;
   readonly metrics: readonly MetricDefinition[];
   readonly features?: {
+    strategyBoard?: {
+      phases: readonly { id: string; label: string }[];
+      field: {
+        width: number;
+        height: number;
+        backgroundAsset: string | null;
+        stationLabels?: Partial<
+          Record<
+            "R1" | "R2" | "R3" | "B1" | "B2" | "B3",
+            { x: number; y: number }
+          >
+        >;
+        label: string;
+      };
+    };
     matchPrep?: { metricIds: readonly string[] };
     picklist?: { metricIds: readonly string[]; defaultSortMetric: string };
   };

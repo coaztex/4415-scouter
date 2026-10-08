@@ -43,9 +43,8 @@ export function ReviewForm({
     >
       <h3 className="font-bold">Add later confirmed cause</h3>
       <p className="text-sm text-muted">
-        Record only a cause supported by a team conversation or strategy review.
-        The scout observation stays unchanged. This confirmation cannot be
-        casually edited.
+        Confirm a supported cause. Scout observations stay unchanged;
+        confirmation is permanent.
       </p>
       <Select
         id={`source-${incidentId}`}

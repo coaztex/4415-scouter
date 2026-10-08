@@ -12,6 +12,8 @@ import { syncEvent } from "./sync-event";
 import { withTbaRefreshLease } from "./live-refresh";
 import { syncStatboticsForEvent } from "./statbotics-sync";
 import { statboticsRepository } from "./statbotics-repository";
+import { nexusEventKeySchema } from "@/lib/nexus/schemas";
+import { syncNexusForEvent } from "./nexus-repository";
 import type { ImportState } from "../import-state";
 
 export async function eventImportAction(
@@ -23,8 +25,39 @@ export async function eventImportAction(
     const { db } = await requireRole("admin");
     const key = eventKeySchema.parse(form.get("eventKey"));
     const operation = z
-      .enum(["preview", "import", "sync", "statbotics"])
+      .enum(["preview", "import", "sync", "statbotics", "pit-map"])
       .parse(form.get("operation"));
+    if (operation === "pit-map") {
+      const raw = z
+        .string()
+        .trim()
+        .parse(form.get("nexusEventKey") ?? "");
+      const parsedOverride =
+        raw === "" ? null : nexusEventKeySchema.safeParse(raw);
+      if (parsedOverride && !parsedOverride.success)
+        return {
+          error:
+            "Enter a Nexus event key using letters, digits, underscores or hyphens, up to 80 characters; leave blank to use the normal event key.",
+        };
+      const override = parsedOverride?.success ? parsedOverride.data : null;
+      const event = await db
+        .from("events")
+        .update({ nexus_event_key: override })
+        .eq("tba_key", key)
+        .select("id")
+        .maybeSingle();
+      if (event.error || !event.data)
+        return {
+          error:
+            "Nexus event setting could not be saved. Check event access and database migrations.",
+        };
+      const result = await syncNexusForEvent(db, event.data.id, true);
+      revalidatePath("/admin", "layout");
+      revalidatePath(`/events/${key}/pit`, "layout");
+      return result.ok
+        ? { message: result.message }
+        : { error: result.message };
+    }
     if (operation === "statbotics") {
       const { data, error } = await db
         .from("events")
@@ -102,7 +135,7 @@ export async function eventImportAction(
     revalidatePath(`/events/${key}`, "layout");
     revalidatePath("/admin", "layout");
     return {
-      message: `Saved ${key}: ${result.teamCount} teams and ${result.matchCount} matches. Scouting records were preserved. ${result.statbotics.ok ? "Statbotics cache refreshed." : result.statbotics.message + " Use Retry Statbotics."} ${result.media.ok ? `TBA media checked (${result.media.robotCount} robot images, ${result.media.avatarCount} team avatars usable).` : "TBA media could not be checked; existing images were preserved."}`,
+      message: `Saved ${key}: ${result.teamCount} teams and ${result.matchCount} matches. Scouting records were preserved. ${result.statbotics.ok ? "Statbotics cache refreshed." : result.statbotics.message + " Use Retry Statbotics."} ${result.media.ok ? `TBA media checked (${result.media.robotCount} robot images, ${result.media.avatarCount} team avatars usable).` : "TBA media could not be checked; existing images were preserved."} ${result.nexus.message}`,
     };
   } catch (error) {
     if (error instanceof AuthorizationError || error instanceof TbaError)

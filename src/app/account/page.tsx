@@ -24,7 +24,7 @@ export default async function AccountPage() {
       <PageHeading
         eyebrow="Your account"
         title={context.profile.display_name || "Account"}
-        description="Replace your temporary password here. Your role and access are managed by an administrator."
+        description="Account access is managed by an administrator."
       />
       <Card>
         <h2 className="mb-5 text-xl font-bold">Change password</h2>

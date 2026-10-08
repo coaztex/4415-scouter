@@ -11,18 +11,19 @@ import {
   EventStatusControl,
   OurTeamControl,
   EventTimezoneControl,
+  PitMapSyncControls,
 } from "@/features/admin/components/event-controls";
-import { SyncStatus } from "@/features/admin/components/sync-status";
+import {
+  SyncStatus,
+  PitMapSyncStatus,
+} from "@/features/admin/components/sync-status";
 import { eventTime } from "@/features/events/timezone";
 export const metadata = { title: "Event administration" };
 export default async function AdminEvents() {
   const events = await adminEvents();
   return (
     <>
-      <PageHeading
-        eyebrow="Administration"
-        title="Events"
-      />
+      <PageHeading eyebrow="Administration" title="Events" />
       <EventImport
         games={listGameModules()}
         events={[]}
@@ -61,6 +62,11 @@ export default async function AdminEvents() {
                 teamNumber={event.our_team_number}
               />
               <SyncControls eventKey={event.tba_key} />
+              <PitMapSyncStatus cache={event.pitMapCache} />
+              <PitMapSyncControls
+                eventKey={event.tba_key}
+                nexusEventKey={event.nexus_event_key}
+              />
               <EventTimezoneControl
                 id={event.id}
                 timezone={event.timezone}

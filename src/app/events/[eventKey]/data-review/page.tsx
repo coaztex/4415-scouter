@@ -28,9 +28,8 @@ export default async function Page({
     <div className="space-y-6">
       <PageHeading
         title="Data Review"
-        description="Quality review only. Official alliance totals and human robot observations remain separate; this page never rescales or automatically changes scouting data."
+        description="Official totals and scout estimates are compared for review; records are unchanged."
       />
-
       <Card>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -38,8 +37,8 @@ export default async function Page({
             <p className="mt-1 text-sm text-muted">
               Review threshold: {FUEL_REVIEW_THRESHOLD.percentage}% difference,
               or {FUEL_REVIEW_THRESHOLD.absoluteWhenOfficialIsZero} FUEL when
-              the official value is zero. This is a prioritization signal, not
-              an attribution of error to any robot.
+              the official value is zero. Differences flag review, not robot
+              error.
             </p>
           </div>
           <div className="flex gap-2">
@@ -131,7 +130,6 @@ export default async function Page({
           )}
         </div>
       </Card>
-
       <div className="grid gap-5 lg:grid-cols-2">
         <Queue title="Sync conflicts" empty="No unresolved sync conflicts.">
           {review.conflicts.map((row) => (

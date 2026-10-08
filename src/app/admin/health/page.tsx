@@ -100,7 +100,7 @@ export default async function HealthPage({
       <PageHeading
         eyebrow="Administration"
         title="Competition Readiness"
-        description="Server-known checks for the selected event. Device-local pending sync cannot be measured globally."
+        description="Server status · excludes unsynced device submissions."
       />
       <Card>
         <h2 className="text-xl font-bold">System</h2>
@@ -173,9 +173,8 @@ export default async function HealthPage({
               ))}
             </dl>
             <p className="mt-4 text-sm text-muted">
-              A zero means none recorded; “Unavailable” means the server could
-              not read that check. Pending or failed submissions stored only on
-              a scout’s device are not included.
+              “Unavailable” means the check could not be read. Unsynced device
+              submissions are excluded.
             </p>
           </>
         )}

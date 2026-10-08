@@ -13,7 +13,7 @@
 ## Creating a team account
 
 1. Open Admin → Users → Create a team account.
-2. Enter the display name, unique lower-case username, real team-member email, initial role, and a unique temporary password of 16–128 characters. Prefer a password-manager-generated password.
+2. Enter the display name, unique lower-case username, real team-member email, initial role, and a unique temporary password of 8–128 characters. Prefer a password-manager-generated password. This uses the shared [password policy](../src/lib/auth/password-policy.ts); the hosted Supabase Auth minimum must also be 8 (see [deployment settings](AUTHENTICATION_UX.md#supabase-setup-before-deployment)).
 3. Review the confirmation and submit. This server-only Auth Admin API operation marks the email confirmed; the administrator must verify ownership before creating the account. No invitation email or SMTP setup is required.
 4. Share the temporary password privately. The member signs in with their email or username, opens Account, and replaces it using their current password. Other sessions are revoked where Supabase permits.
 

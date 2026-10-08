@@ -4,6 +4,13 @@ create role authenticated nologin;
 create role service_role nologin bypassrls;
 create schema auth;
 create schema storage;
+-- Disposable stand-in for Supabase's owned Realtime authorization surface.
+create schema realtime;
+create table realtime.messages (extension text, topic text);
+alter table realtime.messages enable row level security;
+create function realtime.topic() returns text language sql stable as $$ select current_setting('realtime.topic',true); $$;
+grant usage on schema realtime to authenticated;
+grant select,insert on realtime.messages to authenticated;
 create table storage.buckets (id text primary key, name text not null, public boolean not null default false, file_size_limit bigint, allowed_mime_types text[]);
 create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text not null, name text not null);
 alter table storage.objects enable row level security;

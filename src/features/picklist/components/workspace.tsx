@@ -5,14 +5,15 @@ import { InteractiveCard } from "@/components/ui/interactive-card";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { roleLabels } from "@/features/teams/directory-model";
+import { PitSpecFilters } from "./pit-spec-filters";
 import {
-  scoringMechanisms,
-  scoringMechanismLabels,
-  type ScoringMechanism,
-} from "@/games/2026-rebuilt/pit-options";
+  compareRobotWeight,
+  emptyPitSpecFilters,
+  filterByPitSpecs,
+  type PicklistOrder,
+} from "../filters";
 import {
   correlatedWarnings,
-  filterByMechanisms,
   manualOrder,
   metrics,
   moveTeam,
@@ -59,12 +60,10 @@ export function PicklistWorkspace({ data }: { data: Data }) {
     auto: manualPresetEditor(),
     complement: manualPresetEditor(),
   });
-  const [view, setView] = useState<"computed" | "manual">("computed");
+  const [view, setView] = useState<PicklistOrder>("computed");
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [showExcluded, setShowExcluded] = useState(true);
-  const [mechanismFilter, setMechanismFilter] = useState<ScoringMechanism[]>(
-    [],
-  );
+  const [pitFilters, setPitFilters] = useState(emptyPitSpecFilters);
   const [search, setSearch] = useState("");
   const [snapshotName, setSnapshotName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -103,7 +102,7 @@ export function PicklistWorkspace({ data }: { data: Data }) {
     evidence.map((t) => t.teamNumber),
     state.manualOrder,
   );
-  const displayed = filterByMechanisms(evidence, mechanismFilter)
+  const displayed = filterByPitSpecs(evidence, pitFilters)
     .filter((t) => {
       const c = state.controls[t.teamNumber];
       return (
@@ -117,6 +116,14 @@ export function PicklistWorkspace({ data }: { data: Data }) {
     .sort((a, b) => {
       if (view === "manual")
         return order.indexOf(a.teamNumber) - order.indexOf(b.teamNumber);
+      if (view === "weight_asc" || view === "weight_desc") {
+        const compared = compareRobotWeight(
+          a.robotWeightLbs,
+          b.robotWeightLbs,
+          view,
+        );
+        if (compared) return compared;
+      }
       const av = scoreMap.get(a.teamNumber)?.score,
         bv = scoreMap.get(b.teamNumber)?.score;
       return av == null && bv == null
@@ -247,8 +254,8 @@ export function PicklistWorkspace({ data }: { data: Data }) {
           <h2 className="text-xl font-bold">Snapshot: {frozen.name}</h2>
           <p className="text-sm">
             Captured {frozen.evidence.capturedAt} · revision {frozen.revision} ·
-            formula v{frozen.evidence.formulaVersion}. Scores, evidence and
-            order are frozen. Match links open the current source record.
+            formula v{frozen.evidence.formulaVersion}. Match links show current
+            records.
           </p>
           <Link
             className="inline-block min-h-11 py-3 font-bold text-accent underline"
@@ -283,6 +290,8 @@ export function PicklistWorkspace({ data }: { data: Data }) {
             >
               <option value="computed">Computed profile score</option>
               <option value="manual">Our manual pick order</option>
+              <option value="weight_asc">Weight: Lightest first</option>
+              <option value="weight_desc">Weight: Heaviest first</option>
             </select>
           </label>
           {!readOnly && (
@@ -307,8 +316,7 @@ export function PicklistWorkspace({ data }: { data: Data }) {
           </a>
         </div>
         <p className="mt-3 text-sm">
-          Manual order and favorites do not change scores. Missing evidence
-          never counts as zero.
+          Missing evidence is unknown, not zero.
           {(frozen ? frozen.evidence.ownTeamNumber : data.ownTeamNumber) ===
             null && " Our team number is not configured."}
         </p>
@@ -317,9 +325,7 @@ export function PicklistWorkspace({ data }: { data: Data }) {
             Score policy and enabled inputs
           </summary>
           <p>
-            Scores compare this profile’s evidence. Our robot is excluded when
-            configured; exclusions do not change the percentile comparison
-            group.
+            Percentiles compare the full event field, including excluded teams.
           </p>
           <p className="mt-2">
             <b>Policy:</b> at least {state.profiles[profile].minSamples} samples
@@ -386,13 +392,7 @@ export function PicklistWorkspace({ data }: { data: Data }) {
                 </select>
               </label>
               <p className="mt-2 text-sm">
-                {activePreset?.purpose ??
-                  "Edit the weights below to match your strategy."}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                Presets replace this profile’s weights with visible starting
-                ratios. Sample rules stay as set. The saved weights remain when
-                the selector starts in Manual on a new visit.
+                {activePreset?.purpose ?? "Custom weights."}
               </p>
               {undoPreset && (
                 <button
@@ -434,10 +434,9 @@ export function PicklistWorkspace({ data }: { data: Data }) {
               </label>
             </div>
             <p className="text-sm text-muted">
-              Weights are relative, 0–100. Set 0 to disable. Percentiles use
-              eligible values from this event; ties share a percentile and a
-              single/equal cohort is neutral at 50. External sample sizes are
-              unavailable and the scouting minimum does not apply to them.
+              Relative weights: 0–100; 0 disables an input. Ties share a
+              percentile; equal values score 50. External metrics have no
+              sample-count minimum.
             </p>
             {metrics
               .filter((m) => profileMetrics[profile].includes(m.id))
@@ -480,9 +479,7 @@ export function PicklistWorkspace({ data }: { data: Data }) {
           {frozen
             ? (frozen.evidence.ownTeamNumber ?? "not configured")
             : (data.ownTeamNumber ?? "not configured")}
-          . Enter strengths and needs from your strategy discussion. Complement
-          uses only the explicit metric weights you set above; it starts with
-          all weights disabled.
+          . Complement starts with all weights disabled.
         </p>
         {!frozen && own && (
           <p className="mt-2 text-sm">
@@ -566,50 +563,16 @@ export function PicklistWorkspace({ data }: { data: Data }) {
         </label>
         <span className="text-sm">{displayed.length} teams</span>
       </div>
-      <fieldset className="flex flex-wrap items-center gap-2 text-sm">
-        <legend className="mb-1 font-bold">
-          Primary scoring mechanism · pit report
-        </legend>
-        <button
-          type="button"
-          aria-pressed={mechanismFilter.length === 0}
-          onClick={() => setMechanismFilter([])}
-          className={`min-h-11 rounded-control border px-3 font-bold ${mechanismFilter.length === 0 ? "border-accent bg-accent-soft" : "border-border bg-surface"}`}
-        >
-          All
-        </button>
-        {scoringMechanisms.map((mechanism) => (
-          <label
-            key={mechanism}
-            className={`flex min-h-11 cursor-pointer items-center gap-2 rounded-control border px-3 ${mechanismFilter.includes(mechanism) ? "border-accent bg-accent-soft" : "border-border bg-surface"}`}
-          >
-            <input
-              type="checkbox"
-              className="size-5 accent-accent"
-              checked={mechanismFilter.includes(mechanism)}
-              onChange={(e) =>
-                setMechanismFilter((current) =>
-                  e.target.checked
-                    ? [...current, mechanism]
-                    : current.filter((item) => item !== mechanism),
-                )
-              }
-            />
-            {scoringMechanismLabels[mechanism]}
-          </label>
-        ))}
-      </fieldset>
-      <p className="text-xs text-muted">
-        This filter only changes displayed teams. Scores still compare the full
-        event field; Unknown includes teams without a reported mechanism.
-      </p>
-      {view === "manual" && (
-        <p className="text-sm">
-          Manual positions include all candidates, including hidden/excluded
-          teams. A new team is appended in team-number order. Changing weights
-          never changes this order.
-        </p>
-      )}
+      <PitSpecFilters
+        filters={pitFilters}
+        onChange={setPitFilters}
+        onClear={() => {
+          setPitFilters(emptyPitSpecFilters());
+          setSearch("");
+          setFavoritesOnly(false);
+          setShowExcluded(true);
+        }}
+      />
       <div className="space-y-3">
         {displayed.map((team) => (
           <TeamEntry
@@ -655,9 +618,8 @@ export function PicklistWorkspace({ data }: { data: Data }) {
       >
         <h2 className="text-xl font-bold">Named snapshots</h2>
         <p className="mt-2 text-sm">
-          A snapshot preserves saved preferences, team controls, manual order,
-          all six profiles’ contributions and evidence. Save your changes first.
-          Existing snapshots cannot be overwritten.
+          Save changes before creating a snapshot. Snapshots preserve scores,
+          evidence and order and cannot be overwritten.
         </p>
         {!readOnly && (
           <form

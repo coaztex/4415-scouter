@@ -7,6 +7,7 @@ import { createAccount, saveAccount } from "./accounts";
 import { expectedProfile, roles, type AdminState } from "../schemas";
 import { isEventTimezone } from "@/features/events/timezone";
 import { resolvePasswordReset, dismissPasswordReset } from "./password-resets";
+import { PASSWORD_LENGTH_HINT } from "@/lib/auth/password-policy";
 
 export async function passwordResetDecisionAction(
   _previous: AdminState & { temporaryPassword?: string },
@@ -31,7 +32,7 @@ export async function passwordResetDecisionAction(
         error instanceof AdminOperationError
           ? error.message
           : error instanceof z.ZodError
-            ? "Use a temporary password of 16–128 characters, or leave it blank to generate one."
+            ? `${PASSWORD_LENGTH_HINT} Leave the temporary password blank to generate one.`
             : "Reset request could not be processed.",
     };
   }
@@ -122,7 +123,7 @@ export async function accountAction(
     return {
       error:
         error instanceof z.ZodError || error instanceof SyntaxError
-          ? "Check the fields: username must be 3–40 letters/digits/underscores; temporary passwords need at least 16 characters."
+          ? `Check the fields: username must be 3–40 letters/digits/underscores. ${PASSWORD_LENGTH_HINT}`
           : error instanceof AdminOperationError ||
               error instanceof AuthorizationError
             ? error.message

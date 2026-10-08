@@ -37,8 +37,8 @@ export default async function Page({
       <PageHeading title="Stats" />
       <p className="text-sm text-muted">
         {isAtLeastRole(profile.role, "strategy")
-          ? "Human summaries include readable event-wide scouting."
-          : "Human summaries include scouting records visible to your role; strategy and admin users see event-wide observations."}
+          ? "Event-wide scouting."
+          : "Scouting summaries reflect your account access."}
       </p>
       <StatsControls
         key={`${displayQuery.tab}:${displayQuery.q}`}

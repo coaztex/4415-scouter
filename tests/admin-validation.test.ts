@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { accountInput, profileValues } from "../src/features/admin/schemas";
-test("account creation validates identifiers and long temporary passwords without trimming passwords", () => {
+test("account creation validates identifiers and temporary passwords without trimming passwords", () => {
   const input = {
     username: " SCOUT_1 ",
     display_name: " Scout ",

@@ -15,6 +15,7 @@ export type TeamListRow = {
   nickname: string | null;
   status: PitStatus;
   claimedBy: string | null;
+  pitLabel?: string | null;
 };
 export type TeamFilter = "all" | "unscouted" | "completed";
 const priority: Record<PitStatus, number> = {
@@ -50,6 +51,7 @@ export function visibleTeams(
 export function blankPit(): RebuiltPitData {
   return {
     drivetrain: "unknown",
+    robot_weight_lbs: null,
     primary_scoring_mechanism: "unknown",
     fuel_capacity: { kind: "band", band: "unknown" },
     preferred_scoring_areas: null,
@@ -70,11 +72,20 @@ export function newRoutine(
     reliability_claim: "unknown",
   };
 }
+export function weightInputValue(data: RebuiltPitData, savedText?: string) {
+  return (
+    savedText ??
+    (data.robot_weight_lbs === null ? "" : String(data.robot_weight_lbs))
+  );
+}
 export function preparePit(
   data: RebuiltPitData,
   capacityMode: "approximate_count" | "band",
   numeric: string,
+  weightNumeric = weightInputValue(data),
 ) {
+  const weightText = weightNumeric.trim();
+  const weight = weightText === "" ? null : Number(weightText);
   const capacity =
     capacityMode === "approximate_count"
       ? {
@@ -91,6 +102,7 @@ export function preparePit(
         : { kind: "band" as const, band: "unknown" as const };
   const cleaned = {
     ...data,
+    robot_weight_lbs: weight,
     fuel_capacity: capacity,
     other_shooter_type:
       data.primary_scoring_mechanism === "other"

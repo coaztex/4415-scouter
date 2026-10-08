@@ -7,6 +7,7 @@ import { tbaRepository } from "./tba-repository";
 import { syncStatboticsForEvent } from "./statbotics-sync";
 import { statboticsRepository } from "./statbotics-repository";
 import { syncTbaRobotMedia } from "@/features/robot-media/server/tba";
+import { syncNexusForEvent } from "./nexus-repository";
 
 /** Authorized actions/jobs share this orchestration; each provider commits independently. */
 export async function syncEvent(
@@ -27,5 +28,11 @@ export async function syncEvent(
   const media = await syncTbaRobotMedia(tba.eventId, key)
     .then((counts) => ({ ok: true as const, ...counts }))
     .catch(() => ({ ok: false as const, robotCount: 0, avatarCount: 0 }));
-  return { ...tba, statbotics, media };
+  const nexus = await syncNexusForEvent(db, tba.eventId).catch(() => ({
+    ok: false,
+    status: "failed" as const,
+    message:
+      "Optional Nexus pit sync could not complete. Existing Pit Scouting remains available.",
+  }));
+  return { ...tba, statbotics, media, nexus };
 }

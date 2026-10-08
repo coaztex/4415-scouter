@@ -127,6 +127,8 @@ test("rankings distinguish zero from absent data and require an explicit sample 
     pitMechanism: "unknown",
     pitReported: false,
     pitOtherType: null,
+    pitRobotWeightLbs: null,
+    pitDrivetrain: "unknown",
     rank: null,
     wins: null,
     losses: null,
@@ -269,22 +271,23 @@ test("team search and sorting keep missing external data last, not zero", () => 
   );
 });
 
-test("Stats presents shuffling and Shuttler without a separate passing metric", () => {
+test("Stats presents Shuttling / Passing without duplicating activity metrics", () => {
   assert.equal(tabLabels.activity, "Activity");
   assert.equal(tabLabels.fuel, "FUEL");
   assert(
     metricsByTab.activity.some(
-      (metric) => metric.label === "Shuffling time share",
+      (metric) => metric.label === "Shuttling / Passing time share",
     ),
   );
   assert(
     metricsByTab.activity.some(
-      (metric) => metric.label === "Shuttler observed-role frequency",
+      (metric) =>
+        metric.label === "Shuttling / Passing observed-role frequency",
     ),
   );
   assert(
     metricsByTab.activity.every(
-      (metric) => !/passing|Passer-Feeder/i.test(metric.label),
+      (metric) => !/Shuffl|Shuttler|Passer-Feeder/i.test(metric.label),
     ),
   );
   assert.equal(querySchema.parse({ tab: "scoring" }).tab, "fuel");

@@ -5,7 +5,11 @@ import { requireUser } from "@/lib/auth/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServerSupabaseEnvironment } from "@/lib/server/env";
 import { allowLoginAttempt } from "./rate-limit";
-import { temporaryPassword, type AdminState } from "@/features/admin/schemas";
+import type { AdminState } from "@/features/admin/schemas";
+import {
+  passwordSchema,
+  PASSWORD_LENGTH_HINT,
+} from "@/lib/auth/password-policy";
 export async function changePasswordAction(
   _state: AdminState,
   form: FormData,
@@ -17,7 +21,7 @@ export async function changePasswordAction(
       .min(1)
       .max(1024)
       .parse(form.get("current_password"));
-    const next = temporaryPassword.parse(form.get("password"));
+    const next = passwordSchema.parse(form.get("password"));
     if (next !== form.get("confirm_password"))
       return { error: "New passwords do not match." };
     if (next === current) return { error: "Choose a different password." };
@@ -57,7 +61,7 @@ export async function changePasswordAction(
     };
   } catch {
     return {
-      error: "Use an active account and a new password of 16–128 characters.",
+      error: `Use an active account. ${PASSWORD_LENGTH_HINT}`,
     };
   }
 }

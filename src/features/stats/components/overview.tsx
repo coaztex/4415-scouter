@@ -68,12 +68,12 @@ export function FuelDistribution({ rows }: { rows: readonly StatsRow[] }) {
     <Card>
       <h2 className="text-lg font-bold">TELEOP FUEL distribution</h2>
       <p className="mt-1 text-sm text-muted">
-        Across team medians with at least two usable FUEL observations per team
-        · {d.teamCount} teams.
+        Team medians · minimum 2 usable FUEL observations per team ·{" "}
+        {d.teamCount} teams.
       </p>
       {d.teamCount < 5 ? (
         <p className="mt-4 rounded-control bg-background p-3 text-sm">
-          Insufficient sample for distribution. Five eligible teams are needed.
+          Distribution needs at least 5 eligible teams.
         </p>
       ) : (
         <>
@@ -138,7 +138,7 @@ export function Overview({
   const statbotics = rows.filter((row) => row.statbotics?.total != null).length;
   const roles = [
     ["Scorer", overall.roles.counts.scorer],
-    ["Shuttler", overall.roles.counts.passer_feeder],
+    ["Shuttling / Passing", overall.roles.counts.passer_feeder],
     ["Defender", overall.roles.counts.defender],
     ["Mixed", overall.roles.counts.mixed],
     ["Inactive", overall.roles.counts.inactive],
@@ -167,10 +167,6 @@ export function Overview({
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <h2 className="text-lg font-bold">Event Baselines</h2>
-          <p className="mt-1 text-sm text-muted">
-            Typical performance across scouted teams at this event; use as
-            context when comparing individual teams.
-          </p>
           <dl className="mt-4 grid grid-cols-2 gap-4">
             <div>
               <dt className="text-xs text-muted">
@@ -191,7 +187,7 @@ export function Overview({
             </div>
             <div>
               <dt className="text-xs text-muted">
-                Shuffling share · n=
+                Shuttling / Passing share · n=
                 {overall.activity.shuttling_passing.share.sampleSize}
               </dt>
               <dd className="text-xl font-bold tabular-nums">
@@ -208,8 +204,7 @@ export function Overview({
             </div>
           </dl>
           <p className="mt-4 text-xs text-muted">
-            Pooled robot-match observations; teams with more readable matches
-            contribute more.
+            Pooled observations; teams with more matches contribute more.
           </p>
         </Card>
         <Card>

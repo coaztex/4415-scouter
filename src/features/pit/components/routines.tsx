@@ -23,10 +23,7 @@ export function AutoRoutines({
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Autonomous routines</h2>
-          <p className="text-sm text-muted">
-            Claims from the pit; match observations are separate. Add only
-            routines the team can describe.
-          </p>
+          <p className="text-sm text-muted">Team-reported routines.</p>
         </div>
         <Button
           variant="secondary"

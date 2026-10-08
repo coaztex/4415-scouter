@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       admin_account_audit: {
@@ -94,6 +119,59 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      event_pit_maps: {
+        Row: {
+          created_at: string;
+          event_id: string;
+          fetched_at: string | null;
+          last_attempt_at: string;
+          last_attempt_key: string | null;
+          last_error: string | null;
+          layout: Json | null;
+          raw_source: Json | null;
+          source: string;
+          source_event_key: string | null;
+          status: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          event_id: string;
+          fetched_at?: string | null;
+          last_attempt_at: string;
+          last_attempt_key?: string | null;
+          last_error?: string | null;
+          layout?: Json | null;
+          raw_source?: Json | null;
+          source?: string;
+          source_event_key?: string | null;
+          status: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          event_id?: string;
+          fetched_at?: string | null;
+          last_attempt_at?: string;
+          last_attempt_key?: string | null;
+          last_error?: string | null;
+          layout?: Json | null;
+          raw_source?: Json | null;
+          source?: string;
+          source_event_key?: string | null;
+          status?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_pit_maps_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: true;
+            referencedRelation: "events";
             referencedColumns: ["id"];
           },
         ];
@@ -245,6 +323,7 @@ export type Database = {
           last_statbotics_sync_at: string | null;
           last_tba_sync_at: string | null;
           name: string;
+          nexus_event_key: string | null;
           our_team_number: number | null;
           short_name: string | null;
           source_metadata: Json;
@@ -269,6 +348,7 @@ export type Database = {
           last_statbotics_sync_at?: string | null;
           last_tba_sync_at?: string | null;
           name: string;
+          nexus_event_key?: string | null;
           our_team_number?: number | null;
           short_name?: string | null;
           source_metadata?: Json;
@@ -293,6 +373,7 @@ export type Database = {
           last_statbotics_sync_at?: string | null;
           last_tba_sync_at?: string | null;
           name?: string;
+          nexus_event_key?: string | null;
           our_team_number?: number | null;
           short_name?: string | null;
           source_metadata?: Json;
@@ -421,9 +502,9 @@ export type Database = {
           assignment_id: string | null;
           client_submission_id: string;
           completed_at: string | null;
-          correction_reason: string | null;
           corrected_by: string | null;
           correction_provenance: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason: string | null;
           created_at: string;
           event_id: string;
           game_data: Json;
@@ -445,9 +526,9 @@ export type Database = {
           assignment_id?: string | null;
           client_submission_id: string;
           completed_at?: string | null;
-          correction_reason?: string | null;
           corrected_by?: string | null;
           correction_provenance?: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason?: string | null;
           created_at?: string;
           event_id: string;
           game_data: Json;
@@ -469,9 +550,9 @@ export type Database = {
           assignment_id?: string | null;
           client_submission_id?: string;
           completed_at?: string | null;
-          correction_reason?: string | null;
           corrected_by?: string | null;
           correction_provenance?: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason?: string | null;
           created_at?: string;
           event_id?: string;
           game_data?: Json;
@@ -508,6 +589,13 @@ export type Database = {
               "team_number",
               "scout_user_id",
             ];
+          },
+          {
+            foreignKeyName: "match_scouting_submissions_corrected_by_fkey";
+            columns: ["corrected_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "match_scouting_submissions_event_id_game_slug_fkey";
@@ -646,6 +734,48 @@ export type Database = {
           },
         ];
       };
+      password_reset_requests: {
+        Row: {
+          id: string;
+          requested_at: string;
+          resolved_at: string | null;
+          resolved_by: string | null;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          id?: string;
+          requested_at?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          id?: string;
+          requested_at?: string;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "password_reset_requests_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "password_reset_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       picklist_snapshots: {
         Row: {
           created_at: string;
@@ -698,9 +828,9 @@ export type Database = {
         Row: {
           client_submission_id: string;
           completed_at: string | null;
-          correction_reason: string | null;
           corrected_by: string | null;
           correction_provenance: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason: string | null;
           created_at: string;
           event_id: string;
           game_data: Json;
@@ -718,9 +848,9 @@ export type Database = {
         Insert: {
           client_submission_id: string;
           completed_at?: string | null;
-          correction_reason?: string | null;
           corrected_by?: string | null;
           correction_provenance?: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason?: string | null;
           created_at?: string;
           event_id: string;
           game_data: Json;
@@ -738,9 +868,9 @@ export type Database = {
         Update: {
           client_submission_id?: string;
           completed_at?: string | null;
-          correction_reason?: string | null;
           corrected_by?: string | null;
           correction_provenance?: Database["public"]["Enums"]["correction_provenance"];
+          correction_reason?: string | null;
           created_at?: string;
           event_id?: string;
           game_data?: Json;
@@ -756,6 +886,13 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "pit_scouting_submissions_corrected_by_fkey";
+            columns: ["corrected_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "pit_scouting_submissions_event_id_game_slug_fkey";
             columns: ["event_id", "game_slug"];
@@ -783,10 +920,10 @@ export type Database = {
         Row: {
           active: boolean;
           approval_pending: boolean;
-          must_change_password: boolean;
           created_at: string;
           display_name: string;
           id: string;
+          must_change_password: boolean;
           role: Database["public"]["Enums"]["profile_role"];
           updated_at: string;
           username: string;
@@ -794,10 +931,10 @@ export type Database = {
         Insert: {
           active?: boolean;
           approval_pending?: boolean;
-          must_change_password?: boolean;
           created_at?: string;
           display_name?: string;
           id: string;
+          must_change_password?: boolean;
           role?: Database["public"]["Enums"]["profile_role"];
           updated_at?: string;
           username: string;
@@ -805,40 +942,13 @@ export type Database = {
         Update: {
           active?: boolean;
           approval_pending?: boolean;
-          must_change_password?: boolean;
           created_at?: string;
           display_name?: string;
           id?: string;
+          must_change_password?: boolean;
           role?: Database["public"]["Enums"]["profile_role"];
           updated_at?: string;
           username?: string;
-        };
-        Relationships: [];
-      };
-      password_reset_requests: {
-        Row: {
-          id: string;
-          user_id: string;
-          requested_at: string;
-          status: string;
-          resolved_at: string | null;
-          resolved_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          user_id: string;
-          requested_at?: string;
-          status?: string;
-          resolved_at?: string | null;
-          resolved_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          user_id?: string;
-          requested_at?: string;
-          status?: string;
-          resolved_at?: string | null;
-          resolved_by?: string | null;
         };
         Relationships: [];
       };
@@ -895,144 +1005,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
-      };
-      scouting_submission_reviews: {
-        Row: {
-          event_id: string;
-          flag_reason: string;
-          id: string;
-          match_submission_id: string | null;
-          opened_at: string;
-          opened_by: string;
-          pit_submission_id: string | null;
-          resolution: Database["public"]["Enums"]["review_resolution"];
-          resolved_at: string | null;
-          resolved_by: string | null;
-          submission_kind: string;
-          updated_at: string;
-        };
-        Insert: {
-          event_id: string;
-          flag_reason: string;
-          id?: string;
-          match_submission_id?: string | null;
-          opened_at?: string;
-          opened_by: string;
-          pit_submission_id?: string | null;
-          resolution?: Database["public"]["Enums"]["review_resolution"];
-          resolved_at?: string | null;
-          resolved_by?: string | null;
-          submission_kind: string;
-          updated_at?: string;
-        };
-        Update: {
-          event_id?: string;
-          flag_reason?: string;
-          id?: string;
-          match_submission_id?: string | null;
-          opened_at?: string;
-          opened_by?: string;
-          pit_submission_id?: string | null;
-          resolution?: Database["public"]["Enums"]["review_resolution"];
-          resolved_at?: string | null;
-          resolved_by?: string | null;
-          submission_kind?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      scouting_submission_revisions: {
-        Row: {
-          correction_reason: string | null;
-          editor_user_id: string;
-          event_id: string;
-          id: number;
-          match_submission_id: string | null;
-          pit_submission_id: string | null;
-          provenance: Database["public"]["Enums"]["correction_provenance"];
-          recorded_at: string;
-          revision: number;
-          snapshot: Json;
-          submission_kind: string;
-        };
-        Insert: {
-          correction_reason?: string | null;
-          editor_user_id: string;
-          event_id: string;
-          id?: never;
-          match_submission_id?: string | null;
-          pit_submission_id?: string | null;
-          provenance: Database["public"]["Enums"]["correction_provenance"];
-          recorded_at?: string;
-          revision: number;
-          snapshot: Json;
-          submission_kind: string;
-        };
-        Update: {
-          correction_reason?: string | null;
-          editor_user_id?: string;
-          event_id?: string;
-          id?: never;
-          match_submission_id?: string | null;
-          pit_submission_id?: string | null;
-          provenance?: Database["public"]["Enums"]["correction_provenance"];
-          recorded_at?: string;
-          revision?: number;
-          snapshot?: Json;
-          submission_kind?: string;
-        };
-        Relationships: [];
-      };
-      scouting_sync_conflicts: {
-        Row: {
-          actor_user_id: string;
-          assignment_id: string | null;
-          attempted_payload: Json;
-          client_submission_id: string;
-          created_at: string;
-          event_id: string;
-          id: string;
-          kind: Database["public"]["Enums"]["sync_conflict_kind"];
-          match_id: string | null;
-          reviewed_at: string | null;
-          reviewed_by: string | null;
-          status: Database["public"]["Enums"]["review_resolution"];
-          submission_kind: string;
-          team_number: number;
-        };
-        Insert: {
-          actor_user_id: string;
-          assignment_id?: string | null;
-          attempted_payload: Json;
-          client_submission_id: string;
-          created_at?: string;
-          event_id: string;
-          id?: string;
-          kind: Database["public"]["Enums"]["sync_conflict_kind"];
-          match_id?: string | null;
-          reviewed_at?: string | null;
-          reviewed_by?: string | null;
-          status?: Database["public"]["Enums"]["review_resolution"];
-          submission_kind: string;
-          team_number: number;
-        };
-        Update: {
-          actor_user_id?: string;
-          assignment_id?: string | null;
-          attempted_payload?: Json;
-          client_submission_id?: string;
-          created_at?: string;
-          event_id?: string;
-          id?: string;
-          kind?: Database["public"]["Enums"]["sync_conflict_kind"];
-          match_id?: string | null;
-          reviewed_at?: string | null;
-          reviewed_by?: string | null;
-          status?: Database["public"]["Enums"]["review_resolution"];
-          submission_kind?: string;
-          team_number?: number;
-        };
-        Relationships: [];
       };
       scouting_assignments: {
         Row: {
@@ -1124,6 +1096,306 @@ export type Database = {
             columns: ["event_id"];
             isOneToOne: true;
             referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      scouting_submission_reviews: {
+        Row: {
+          event_id: string;
+          flag_reason: string;
+          id: string;
+          match_submission_id: string | null;
+          opened_at: string;
+          opened_by: string;
+          pit_submission_id: string | null;
+          resolution: Database["public"]["Enums"]["review_resolution"];
+          resolved_at: string | null;
+          resolved_by: string | null;
+          submission_kind: string;
+          updated_at: string;
+        };
+        Insert: {
+          event_id: string;
+          flag_reason: string;
+          id?: string;
+          match_submission_id?: string | null;
+          opened_at?: string;
+          opened_by: string;
+          pit_submission_id?: string | null;
+          resolution?: Database["public"]["Enums"]["review_resolution"];
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          submission_kind: string;
+          updated_at?: string;
+        };
+        Update: {
+          event_id?: string;
+          flag_reason?: string;
+          id?: string;
+          match_submission_id?: string | null;
+          opened_at?: string;
+          opened_by?: string;
+          pit_submission_id?: string | null;
+          resolution?: Database["public"]["Enums"]["review_resolution"];
+          resolved_at?: string | null;
+          resolved_by?: string | null;
+          submission_kind?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scouting_submission_reviews_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_reviews_match_submission_id_fkey";
+            columns: ["match_submission_id"];
+            isOneToOne: true;
+            referencedRelation: "match_scouting_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_reviews_opened_by_fkey";
+            columns: ["opened_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_reviews_pit_submission_id_fkey";
+            columns: ["pit_submission_id"];
+            isOneToOne: true;
+            referencedRelation: "pit_scouting_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_reviews_resolved_by_fkey";
+            columns: ["resolved_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      scouting_submission_revisions: {
+        Row: {
+          correction_reason: string | null;
+          editor_user_id: string;
+          event_id: string;
+          id: number;
+          match_submission_id: string | null;
+          pit_submission_id: string | null;
+          provenance: Database["public"]["Enums"]["correction_provenance"];
+          recorded_at: string;
+          revision: number;
+          snapshot: Json;
+          submission_kind: string;
+        };
+        Insert: {
+          correction_reason?: string | null;
+          editor_user_id: string;
+          event_id: string;
+          id?: never;
+          match_submission_id?: string | null;
+          pit_submission_id?: string | null;
+          provenance: Database["public"]["Enums"]["correction_provenance"];
+          recorded_at?: string;
+          revision: number;
+          snapshot: Json;
+          submission_kind: string;
+        };
+        Update: {
+          correction_reason?: string | null;
+          editor_user_id?: string;
+          event_id?: string;
+          id?: never;
+          match_submission_id?: string | null;
+          pit_submission_id?: string | null;
+          provenance?: Database["public"]["Enums"]["correction_provenance"];
+          recorded_at?: string;
+          revision?: number;
+          snapshot?: Json;
+          submission_kind?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scouting_submission_revisions_editor_user_id_fkey";
+            columns: ["editor_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_revisions_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_revisions_match_submission_id_fkey";
+            columns: ["match_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "match_scouting_submissions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_submission_revisions_pit_submission_id_fkey";
+            columns: ["pit_submission_id"];
+            isOneToOne: false;
+            referencedRelation: "pit_scouting_submissions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      scouting_sync_conflicts: {
+        Row: {
+          actor_user_id: string;
+          assignment_id: string | null;
+          attempted_payload: Json;
+          client_submission_id: string;
+          created_at: string;
+          event_id: string;
+          id: string;
+          kind: Database["public"]["Enums"]["sync_conflict_kind"];
+          match_id: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          status: Database["public"]["Enums"]["review_resolution"];
+          submission_kind: string;
+          team_number: number;
+        };
+        Insert: {
+          actor_user_id: string;
+          assignment_id?: string | null;
+          attempted_payload: Json;
+          client_submission_id: string;
+          created_at?: string;
+          event_id: string;
+          id?: string;
+          kind: Database["public"]["Enums"]["sync_conflict_kind"];
+          match_id?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database["public"]["Enums"]["review_resolution"];
+          submission_kind: string;
+          team_number: number;
+        };
+        Update: {
+          actor_user_id?: string;
+          assignment_id?: string | null;
+          attempted_payload?: Json;
+          client_submission_id?: string;
+          created_at?: string;
+          event_id?: string;
+          id?: string;
+          kind?: Database["public"]["Enums"]["sync_conflict_kind"];
+          match_id?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          status?: Database["public"]["Enums"]["review_resolution"];
+          submission_kind?: string;
+          team_number?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "scouting_sync_conflicts_actor_user_id_fkey";
+            columns: ["actor_user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_sync_conflicts_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "scouting_assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_sync_conflicts_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_sync_conflicts_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "scouting_sync_conflicts_reviewed_by_fkey";
+            columns: ["reviewed_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      strategy_boards: {
+        Row: {
+          board_data: Json;
+          created_at: string;
+          created_by: string;
+          event_id: string;
+          id: string;
+          match_id: string;
+          revision: number;
+          schema_version: number;
+          updated_at: string;
+          updated_by: string;
+        };
+        Insert: {
+          board_data: Json;
+          created_at?: string;
+          created_by: string;
+          event_id: string;
+          id?: string;
+          match_id: string;
+          revision?: number;
+          schema_version?: number;
+          updated_at?: string;
+          updated_by: string;
+        };
+        Update: {
+          board_data?: Json;
+          created_at?: string;
+          created_by?: string;
+          event_id?: string;
+          id?: string;
+          match_id?: string;
+          revision?: number;
+          schema_version?: number;
+          updated_at?: string;
+          updated_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "strategy_boards_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "strategy_boards_match_id_event_id_fkey";
+            columns: ["match_id", "event_id"];
+            isOneToOne: false;
+            referencedRelation: "matches";
+            referencedColumns: ["id", "event_id"];
+          },
+          {
+            foreignKeyName: "strategy_boards_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -1405,31 +1677,15 @@ export type Database = {
         };
         Returns: undefined;
       };
-      submit_password_reset_request: {
-        Args: { identifier: string };
-        Returns: undefined;
-      };
-      begin_admin_password_reset: {
-        Args: { actor_id: string; request_id: string };
-        Returns: string;
-      };
-      finish_admin_password_reset: {
-        Args: { actor_id: string; request_id: string };
-        Returns: undefined;
-      };
-      dismiss_admin_password_reset: {
-        Args: { actor_id: string; request_id: string };
-        Returns: undefined;
-      };
-      complete_required_password_change: {
-        Args: { actor_id: string };
-        Returns: undefined;
-      };
       apply_statbotics_snapshot: {
         Args: { payload: Json };
         Returns: undefined;
       };
       apply_tba_snapshot: { Args: { payload: Json }; Returns: string };
+      begin_admin_password_reset: {
+        Args: { actor_id: string; request_id: string };
+        Returns: string;
+      };
       claim_pit_team: {
         Args: {
           actor: string;
@@ -1447,6 +1703,10 @@ export type Database = {
         };
         Returns: string;
       };
+      complete_required_password_change: {
+        Args: { actor_id: string };
+        Returns: undefined;
+      };
       confirm_team_incident: {
         Args: {
           actor: string;
@@ -1463,10 +1723,10 @@ export type Database = {
           expected_revision: number;
           payload: Json;
           provenance: Database["public"]["Enums"]["correction_provenance"];
-          reason: string | null;
-          target_submission: string;
+          reason: string;
           target_kind: string;
           target_schema_version: number;
+          target_submission: string;
         };
         Returns: number;
       };
@@ -1479,25 +1739,33 @@ export type Database = {
         };
         Returns: string;
       };
+      dismiss_admin_password_reset: {
+        Args: { actor_id: string; request_id: string };
+        Returns: undefined;
+      };
+      finish_admin_password_reset: {
+        Args: { actor_id: string; request_id: string };
+        Returns: undefined;
+      };
       finish_scout_break: { Args: { assignment: string }; Returns: undefined };
       get_event_match_coverage: { Args: { target: string }; Returns: Json };
+      get_event_pit_completion: { Args: { target: string }; Returns: Json };
       get_match_coverage: {
         Args: { target_event: string; target_match: string };
         Returns: Json;
       };
       get_schedule_snapshot: { Args: { target: string }; Returns: Json };
+      read_strategy_board_map: {
+        Args: { target_event: string; target_match: string };
+        Returns: {
+          board_data: Json;
+          revision: number;
+          schema_version: number;
+          updated_at: string;
+        }[];
+      };
       release_tba_refresh: {
         Args: { claimed: string; target_key: string };
-        Returns: undefined;
-      };
-      review_scouting_submission: {
-        Args: {
-          actor: string;
-          next_resolution: Database["public"]["Enums"]["review_resolution"];
-          reason: string;
-          target_submission: string;
-          target_kind: string;
-        };
         Returns: undefined;
       };
       resolve_sync_conflict: {
@@ -1505,6 +1773,16 @@ export type Database = {
           actor: string;
           next_resolution: Database["public"]["Enums"]["review_resolution"];
           target: string;
+        };
+        Returns: undefined;
+      };
+      review_scouting_submission: {
+        Args: {
+          actor: string;
+          next_resolution: Database["public"]["Enums"]["review_resolution"];
+          reason: string;
+          target_kind: string;
+          target_submission: string;
         };
         Returns: undefined;
       };
@@ -1529,6 +1807,15 @@ export type Database = {
         Args: { expected_version: string; operations: Json; target: string };
         Returns: number;
       };
+      save_strategy_board: {
+        Args: {
+          document: Json;
+          expected_revision: number;
+          target_event: string;
+          target_match: string;
+        };
+        Returns: number;
+      };
       start_match_capture: {
         Args: {
           actor: string;
@@ -1539,6 +1826,19 @@ export type Database = {
           target: string;
         };
         Returns: undefined;
+      };
+      store_nexus_pit_map: {
+        Args: {
+          attempted_at: string;
+          fetched_layout: Json;
+          message: string;
+          raw_payload: Json;
+          replace_manual?: boolean;
+          source_key: string;
+          sync_result: string;
+          target: string;
+        };
+        Returns: boolean;
       };
       submit_match_capture: {
         Args: {
@@ -1554,6 +1854,10 @@ export type Database = {
           target: string;
         };
         Returns: string;
+      };
+      submit_password_reset_request: {
+        Args: { identifier: string };
+        Returns: undefined;
       };
     };
     Enums: {
@@ -1579,9 +1883,9 @@ export type Database = {
       review_resolution:
         "open" | "reviewed_no_change" | "video_review_requested" | "corrected";
       submission_status: "draft" | "final";
-      sync_status: "idle" | "running" | "succeeded" | "failed";
       sync_conflict_kind:
         "sync_conflict" | "duplicate_candidate" | "client_id_collision";
+      sync_status: "idle" | "running" | "succeeded" | "failed";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1707,11 +2011,15 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       alliance_color: ["red", "blue"],
       assignment_status: ["assigned", "in_progress", "submitted", "missed"],
       assignment_type: ["match", "break"],
+      correction_provenance: ["live", "manual_correction", "video_rescout"],
       event_status: ["active", "archived"],
       external_source: ["tba", "statbotics"],
       incident_cause_source: [
@@ -1732,7 +2040,18 @@ export const Constants = {
       incident_status: ["normal", "minor_issue", "major_issue", "DNF", "DNS"],
       pit_status: ["not_scouted", "in_progress", "completed", "needs_review"],
       profile_role: ["scout", "strategy", "admin"],
+      review_resolution: [
+        "open",
+        "reviewed_no_change",
+        "video_review_requested",
+        "corrected",
+      ],
       submission_status: ["draft", "final"],
+      sync_conflict_kind: [
+        "sync_conflict",
+        "duplicate_candidate",
+        "client_id_collision",
+      ],
       sync_status: ["idle", "running", "succeeded", "failed"],
     },
   },

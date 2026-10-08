@@ -1,7 +1,10 @@
 import "server-only";
 
 /** Stop reading as soon as a request exceeds its route's input limit. */
-export async function readBoundedBody(request: Request, maxBytes: number) {
+export async function readBoundedBody(
+  request: Pick<Request, "headers" | "body">,
+  maxBytes: number,
+) {
   const header = request.headers.get("content-length");
   if (header !== null && (!/^\d+$/.test(header) || Number(header) > maxBytes))
     return null;

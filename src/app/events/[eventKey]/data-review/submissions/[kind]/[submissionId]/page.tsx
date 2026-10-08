@@ -45,7 +45,7 @@ export default async function Page({
       <PageHeading
         eyebrow={`Team ${submission.team_number}`}
         title="Submission correction review"
-        description="The client submission ID and record identity are immutable. Corrections create an append-only snapshot of the superseded version before the canonical row changes."
+        description="Corrections preserve the original record in version history."
       />
       {message && (
         <p className="rounded-control border border-success p-3">{message}</p>
@@ -87,8 +87,7 @@ export default async function Page({
         <Card>
           <h2 className="text-xl font-bold">Review disposition</h2>
           <p className="mt-1 text-sm text-muted">
-            Reviewed-no-change leaves the original payload canonical. Video
-            review is a queue state, not a correction.
+            Review status does not change scouting data.
           </p>
           <form action={reviewSubmissionAction} className="mt-4 space-y-3">
             <Hidden eventKey={eventKey} kind={rawKind} id={submissionId} />
@@ -144,9 +143,8 @@ export default async function Page({
           Create corrected canonical revision
         </h2>
         <p className="mt-1 text-sm text-muted">
-          Use only for a clearly identified entry error or completed video
-          re-scout. Never alter role, defense, activity, or reliability merely
-          to force agreement with official alliance FUEL.
+          Correct verified entry errors or video-reviewed observations only. Do
+          not change observations to match official alliance FUEL.
         </p>
         <form action={correctSubmissionAction} className="mt-4 space-y-4">
           <Hidden eventKey={eventKey} kind={rawKind} id={submissionId} />
@@ -188,8 +186,7 @@ export default async function Page({
       <Card>
         <h2 className="text-xl font-bold">Revision history</h2>
         <p className="mt-1 text-sm text-muted">
-          The current canonical revision is shown above. Entries below are
-          immutable superseded snapshots.
+          Previous revisions · preserved after corrections.
         </p>
         <div className="mt-3 space-y-3">
           {detail.history.map((entry) => (

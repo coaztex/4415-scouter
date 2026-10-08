@@ -8,6 +8,8 @@ export function pickTeam(row: TeamDirectoryRow) {
     teamNumber: row.teamNumber,
     nickname: row.nickname,
     mechanism: row.pitMechanism,
+    robotWeightLbs: row.pitRobotWeightLbs,
+    drivetrain: row.pitDrivetrain,
     pitReported: row.pitReported,
     scouting: row.scouting,
     tba: row.tba,

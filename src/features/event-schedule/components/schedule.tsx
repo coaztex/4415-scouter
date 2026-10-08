@@ -155,19 +155,18 @@ export function EventSchedule({
           role="status"
           className="rounded-control border border-border bg-surface p-3"
         >
-          Scouting status unavailable. Team colors will update when coverage can
-          be read.
+          Scouting status unavailable.
         </p>
       )}
       {!matches.length ? (
         <EmptyState
           title="Schedule not yet published"
-          description="No official matches are cached for this event. An admin can sync the event when TBA publishes its schedule."
+          description="No matches available. Ask an admin to sync the schedule."
         />
       ) : !filtered.length ? (
         <EmptyState
           title={`No ${groupLabels[group].toLowerCase()} matches cached`}
-          description="This phase may not have been published yet. Try All or ask an admin to sync the event."
+          description="No matches in this phase. Try All or sync the schedule."
         />
       ) : (
         <section className="space-y-3" aria-label="Official matches">

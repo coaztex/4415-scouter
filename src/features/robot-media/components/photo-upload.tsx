@@ -102,8 +102,7 @@ export function RobotPhotoUpload({
         </p>
       )}
       <p className="text-sm text-muted">
-        Up to four photos. Large images are resized to 1600 px and under 2 MB.
-        Photo upload is separate from the text report.
+        Up to four photos. Photos upload separately from the report.
       </p>
     </div>
   );
