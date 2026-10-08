@@ -3,7 +3,6 @@ import { PageHeading } from "@/components/layout/page-heading";
 import { PitForm } from "@/features/pit/components/form";
 import { pitTeam } from "@/features/pit/server/queries";
 import { PitFormPresence } from "@/features/pit-map/components/pit-form-presence";
-import { NexusInspectionStatus } from "@/features/pit/components/nexus-inspection-status";
 export const metadata = { title: "Pit report" };
 export default async function Page({
   params,
@@ -49,7 +48,6 @@ export default async function Page({
         teamNumber={number}
         enabled={context.event.status === "active"}
       />
-      <NexusInspectionStatus inspection={context.inspection} />
       <PitForm
         key={`${context.profile.id}:${context.event.id}:${number}`}
         context={{

@@ -5,7 +5,6 @@ import { Input, Select } from "@/components/ui/fields";
 import { EmptyState } from "@/components/ui/states";
 import { ScoutingStatusChip } from "@/components/ui/scouting-status-chip";
 import { visibleTeams, type TeamFilter, type TeamListRow } from "../model";
-import { NexusInspectionStatus } from "./nexus-inspection-status";
 export function PitTeamList({
   eventKey,
   rows,
@@ -79,7 +78,6 @@ export function PitTeamList({
               {row.claimedBy && row.status === "in_progress" && (
                 <p className="mt-2 text-sm font-semibold">Scout working</p>
               )}
-              <NexusInspectionStatus inspection={row.inspection ?? null} />
             </InteractiveCard>
           ))}
         </div>

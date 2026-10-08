@@ -6,7 +6,6 @@ import {
   PitMapSyncStatus,
 } from "../src/features/admin/components/sync-status";
 import { PitTeamList } from "../src/features/pit/components/team-list";
-import { NexusInspectionStatus } from "../src/features/pit/components/nexus-inspection-status";
 
 test("admin sync status displays provider-specific error, event key and retained last success", () => {
   const html = renderToStaticMarkup(
@@ -65,7 +64,7 @@ test("admin pit summary displays the requested Nexus key", () => {
   assert.match(html, /Check the Nexus event key override/);
 });
 
-test("addresses and inspection status appear without graphical map data or scouting status changes", () => {
+test("pit cards show addresses and scouting status without inspection indicators", () => {
   const html = renderToStaticMarkup(
     <PitTeamList
       eventKey="2026cass"
@@ -76,36 +75,12 @@ test("addresses and inspection status appear without graphical map data or scout
           status: "not_scouted",
           claimedBy: null,
           pitLabel: "A1",
-          inspection: {
-            value: {
-              inspected: true,
-              status: "reinspection",
-              queuePosition: 2,
-            },
-            fetchedAt: "2026-10-08T22:00:00Z",
-            stale: false,
-          },
         },
       ]}
     />,
   );
   assert.match(html, /Pit: A1/);
-  assert.match(html, /Reinspection · queue #2/);
+  assert.doesNotMatch(html, /Inspection|inspection|queue #/);
   assert.match(html, /0 \/ 1 teams completed/);
   assert.match(html, /\/events\/2026cass\/pit\/101/);
-  const stale = renderToStaticMarkup(
-    <NexusInspectionStatus
-      inspection={{
-        value: { inspected: true, status: "complete" },
-        fetchedAt: "2026-10-08T22:00:00Z",
-        stale: true,
-      }}
-    />,
-  );
-  assert.match(stale, /cached; check Nexus for current status/);
-  const missing = renderToStaticMarkup(
-    <NexusInspectionStatus inspection={null} />,
-  );
-  assert.match(missing, /Unavailable/);
-  assert.doesNotMatch(missing, /Not inspected|Complete/);
 });
