@@ -5,10 +5,13 @@ import { readPitMapCache } from "@/features/pit-map/server/cache";
 import { getOptionalNexusEnvironment } from "@/lib/server/env";
 import { NexusClient } from "@/lib/nexus/client";
 import { syncPitMapForEvent, type NexusRepository } from "./nexus-sync";
+import { logSyncError, SyncDatabaseError } from "@/lib/server/sync-diagnostics";
+import { syncNexusInspection } from "./nexus-inspection-sync";
+import { nexusInspectionRepository } from "./nexus-inspection-repository";
 
 export function nexusRepository(db: SupabaseClient<Database>): NexusRepository {
   return {
-    read: (id) => readPitMapCache(db, id),
+    read: (id) => readPitMapCache(db, id, true),
     async commit(result) {
       const { data, error } = await db.rpc("store_nexus_pit_map", {
         target: result.eventId,
@@ -26,7 +29,8 @@ export function nexusRepository(db: SupabaseClient<Database>): NexusRepository {
         message: result.message,
         replace_manual: result.force,
       });
-      if (error) throw new Error("Pit map cache could not be saved.");
+      if (error)
+        throw new SyncDatabaseError("Nexus", "store_nexus_pit_map", error);
       return data === true;
     },
   };
@@ -42,20 +46,42 @@ export async function syncNexusForEvent(
     .select("id,tba_key,nexus_event_key")
     .eq("id", eventId)
     .maybeSingle();
-  if (result.error || !result.data)
+  if (result.error || !result.data) {
+    if (result.error)
+      logSyncError({
+        provider: "nexus",
+        stage: "event_lookup",
+        eventKey: eventId,
+        responseDetails: result.error,
+      });
     return {
       ok: false,
       status: "failed" as const,
-      message:
-        "Pit map configuration is unavailable. Existing Pit Scouting remains available.",
+      message: result.error
+        ? new SyncDatabaseError("Nexus", "event lookup", result.error).message
+        : "Pit map configuration is unavailable. Existing Pit Scouting remains available.",
     };
-  return syncPitMapForEvent(
+  }
+  const environment = getOptionalNexusEnvironment();
+  const client = environment ? new NexusClient(environment) : null;
+  const map = await syncPitMapForEvent(
     result.data,
     nexusRepository(db),
-    () => {
-      const environment = getOptionalNexusEnvironment();
-      return environment ? new NexusClient(environment) : null;
-    },
+    () => client,
     { force },
   );
+  if (!client) return map;
+  // Inspection refreshes independently of the graphical map's long-lived cache.
+  const inspection = await syncNexusInspection(
+    result.data,
+    nexusInspectionRepository(db),
+    client,
+    { force },
+  );
+  return {
+    ...map,
+    ok: map.ok || inspection.ok,
+    status: map.ok !== inspection.ok ? ("partial" as const) : map.status,
+    message: `${map.message} ${inspection.message}`,
+  };
 }

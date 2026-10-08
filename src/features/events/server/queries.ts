@@ -64,7 +64,7 @@ export const getEvent = cache(async (key: string) => {
   const { data, error } = await db
     .from("events")
     .select(
-      "id,tba_key,name,short_name,year,start_date,end_date,city,state,country,status,game_slug,timezone,timezone_source,last_tba_sync_at,our_team_number",
+      "id,tba_key,name,short_name,year,start_date,end_date,city,state,country,status,game_slug,timezone,timezone_source,last_tba_sync_at,our_team_number,nexus_event_key",
     )
     .eq("tba_key", key)
     .maybeSingle();

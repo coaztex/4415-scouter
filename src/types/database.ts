@@ -9,7 +9,9 @@ export type Database = Omit<GeneratedDatabase, "public"> & {
   public: Omit<GeneratedDatabase["public"], "Functions"> & {
     Functions: Omit<
       Functions,
-      "correct_scouting_submission" | "store_nexus_pit_map"
+      | "correct_scouting_submission"
+      | "store_nexus_pit_map"
+      | "store_nexus_inspection"
     > & {
       correct_scouting_submission: Omit<
         Functions["correct_scouting_submission"],
@@ -22,6 +24,14 @@ export type Database = Omit<GeneratedDatabase, "public"> & {
       };
       store_nexus_pit_map: Omit<Functions["store_nexus_pit_map"], "Args"> & {
         Args: Omit<Functions["store_nexus_pit_map"]["Args"], "message"> & {
+          message: string | null;
+        };
+      };
+      store_nexus_inspection: Omit<
+        Functions["store_nexus_inspection"],
+        "Args"
+      > & {
+        Args: Omit<Functions["store_nexus_inspection"]["Args"], "message"> & {
           message: string | null;
         };
       };

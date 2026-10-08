@@ -7,6 +7,7 @@ import {
   normalizeNexusPitMap,
 } from "../src/lib/nexus/normalize";
 import { nexusEventKey } from "../src/lib/nexus/schemas";
+import { SyncDatabaseError } from "../src/lib/server/sync-diagnostics";
 import { getOptionalNexusEnvironment } from "../src/lib/server/env";
 import {
   cachedEventPitMap,
@@ -471,4 +472,61 @@ test("optional cache read returns null for DB errors and rejects unreadable layo
     { teamNumber: 999, pitLabel: "A1" },
   ]);
   assert.equal(ambiguous.pits[0].teamNumber, null);
+});
+
+test("missing and partial maps retry on the next sync after five minutes, bypassing the old 24-hour negative cache", async () => {
+  for (const resources of [
+    client(null, null),
+    client(nexusAssignments, null),
+  ]) {
+    const state = repository();
+    await syncPitMapForEvent(event, state.repo, resources, { now });
+    const early = await syncPitMapForEvent(event, state.repo, client(), {
+      now: new Date(now.getTime() + 4 * 60 * 1000),
+    });
+    assert.equal(early.status, "cached");
+    const later = await syncPitMapForEvent(event, state.repo, client(), {
+      now: new Date(now.getTime() + 5 * 60 * 1000),
+    });
+    assert.equal(later.status, "succeeded");
+    assert.equal(state.writes.length, 2);
+  }
+});
+
+test("sync cache reads and writes report Supabase errors without confusing them with missing Nexus data", async (t) => {
+  t.mock.method(console, "error", () => {});
+  const db = {
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            error: {
+              code: "42P01",
+              message: "relation event_pit_maps does not exist",
+            },
+            data: null,
+          }),
+        }),
+      }),
+    }),
+  } as unknown as Parameters<typeof readPitMapCache>[0];
+  assert.equal(await readPitMapCache(db, event.id), null);
+  await assert.rejects(readPitMapCache(db, event.id, true), SyncDatabaseError);
+  const result = await syncPitMapForEvent(
+    event,
+    {
+      read: async () => null,
+      commit: async () => {
+        throw new SyncDatabaseError("Nexus", "store_nexus_pit_map", {
+          code: "40001",
+          message: "Nexus event key changed",
+        });
+      },
+    },
+    client(),
+    { now },
+  );
+  assert.equal(result.ok, false);
+  assert.match(result.message, /Supabase.*40001/);
+  assert.doesNotMatch(result.message, /no pit map/);
 });

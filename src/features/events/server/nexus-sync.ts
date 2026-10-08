@@ -11,6 +11,11 @@ import {
   type PitMapLayout,
 } from "@/features/pit-map/model";
 import type { PitMapCache } from "@/features/pit-map/server/cache";
+import {
+  diagnosticText,
+  logSyncError,
+  SyncDatabaseError,
+} from "@/lib/server/sync-diagnostics";
 
 export type NexusEvent = {
   id: string;
@@ -42,6 +47,7 @@ export type NexusSyncResult = {
 };
 export const PIT_MAP_CACHE_MS = 24 * 60 * 60 * 1000;
 export const PIT_MAP_FAILURE_CACHE_MS = 60 * 60 * 1000;
+export const PIT_MAP_PENDING_CACHE_MS = 5 * 60 * 1000;
 
 export async function syncPitMapForEvent(
   event: NexusEvent,
@@ -61,6 +67,7 @@ export async function syncPitMapForEvent(
       message: "Enter a valid Nexus event key override.",
     };
   }
+  let stage = "cache_read";
   try {
     const previous = await repository.read(event.id);
     if (!force && previous?.source === "manual")
@@ -76,7 +83,9 @@ export async function syncPitMapForEvent(
     const ttl =
       previous?.status === "failed"
         ? PIT_MAP_FAILURE_CACHE_MS
-        : PIT_MAP_CACHE_MS;
+        : previous?.status === "unavailable" || previous?.status === "partial"
+          ? PIT_MAP_PENDING_CACHE_MS
+          : PIT_MAP_CACHE_MS;
     if (!force && previous?.lastAttemptKey === key && age >= 0 && age < ttl)
       return {
         ok: previous.status !== "failed" && previous.status !== "unavailable",
@@ -92,6 +101,7 @@ export async function syncPitMapForEvent(
         message:
           "Optional Nexus pit sync is disabled. Configure NEXUS_API_KEY on the server to enable it.",
       };
+    stage = "fetch_pit_resources";
     const results = await Promise.allSettled([
       client.pits(key),
       client.map(key),
@@ -106,6 +116,21 @@ export async function syncPitMapForEvent(
         if (index === 0) pits = result.value;
         else map = result.value;
       } else {
+        logSyncError({
+          provider: "nexus",
+          stage,
+          eventKey: key,
+          resource: index === 0 ? "pits" : "map",
+          upstreamStatus:
+            result.reason instanceof NexusError
+              ? (result.reason.status ?? null)
+              : null,
+          responseDetails: diagnosticText(
+            result.reason instanceof Error
+              ? result.reason.message
+              : result.reason,
+          ),
+        });
         if (index === 0) pitsFailed = true;
         else mapFailed = true;
         messages.push(
@@ -115,9 +140,18 @@ export async function syncPitMapForEvent(
         );
       }
     }
+    stage = "transform";
     try {
       normalizeNexusAssignments(pits);
-    } catch {
+    } catch (error) {
+      logSyncError({
+        provider: "nexus",
+        stage: "transform_assignments",
+        eventKey: key,
+        responseDetails: diagnosticText(
+          error instanceof Error ? error.message : error,
+        ),
+      });
       pits = null;
       pitsFailed = true;
       messages.push("Nexus pit assignments have an unsupported shape.");
@@ -132,9 +166,20 @@ export async function syncPitMapForEvent(
         pitsFailed ? (usablePrevious?.assignments ?? null) : pits,
         map,
       );
-    } catch {
+    } catch (error) {
+      logSyncError({
+        provider: "nexus",
+        stage: "transform_geometry",
+        eventKey: key,
+        responseDetails: diagnosticText(
+          error instanceof Error ? error.message : error,
+        ),
+      });
       map = null;
       mapFailed = true;
+      messages.push(
+        `Nexus returned graphical data for ${key}, but no valid pit geometry could be read. Cached geometry was retained where available.`,
+      );
       messages.push("Nexus graphical pit data could not be normalized.");
       normalized = normalizeNexusPitMap(
         pitsFailed ? (usablePrevious?.assignments ?? null) : pits,
@@ -142,8 +187,17 @@ export async function syncPitMapForEvent(
       );
     }
     if (map !== null && !hasPitGeometry(normalized.layout)) {
+      logSyncError({
+        provider: "nexus",
+        stage: "transform_geometry",
+        eventKey: key,
+        responseDetails: normalized.warnings,
+      });
       map = null;
       mapFailed = true;
+      messages.push(
+        `Nexus returned graphical data for ${key}, but no valid pit geometry could be read. Cached geometry was retained where available.`,
+      );
     }
     let layout = normalized.layout;
     if (mapFailed && usablePrevious && hasPitGeometry(usablePrevious))
@@ -168,9 +222,10 @@ export async function syncPitMapForEvent(
       );
     else if (status === "unavailable")
       messages.push(
-        "Nexus has no pit map or pit addresses for this event. Existing Pit Scouting remains available.",
+        `Nexus API returned no pit map or pit addresses for ${key}. Offseason Nexus keys can differ from TBA; check the Nexus event link or override. Missing data is checked again on the next sync after 5 minutes; Sync Pit Map refreshes immediately. Existing Pit Scouting remains available.`,
       );
     const message = [...new Set(messages)].join(" ").slice(0, 1000) || null;
+    stage = "supabase_commit";
     const saved = await repository.commit({
       eventId: event.id,
       sourceEventKey: key,
@@ -193,14 +248,28 @@ export async function syncPitMapForEvent(
       status,
       message:
         message ??
-        `Nexus pit map synced: ${layout.assignments.length} assigned pits; graphical geometry available.`,
+        `Nexus pit data synced for ${key}: ${layout.assignments.length} assigned pits; graphical geometry available.`,
     };
-  } catch {
+  } catch (error) {
+    logSyncError({
+      provider: "nexus",
+      stage,
+      eventKey: key,
+      eventId: event.id,
+      upstreamStatus:
+        error instanceof NexusError ? (error.status ?? null) : null,
+      responseDetails:
+        error instanceof SyncDatabaseError
+          ? error.details
+          : diagnosticText(error instanceof Error ? error.message : error),
+    });
     return {
       ok: false,
       status: "failed",
       message:
-        "Pit map sync could not be saved. Check database migrations and event access. Existing Pit Scouting remains available.",
+        error instanceof SyncDatabaseError || error instanceof NexusError
+          ? error.message
+          : `Pit map sync failed at ${stage} for ${key}. Check server sync diagnostics. Cached pit data and existing Pit Scouting remain available.`,
     };
   }
 }

@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { SyncDatabaseError } from "@/lib/server/sync-diagnostics";
 import {
   pitMapLayoutSchema,
   withPitAssignments,
@@ -24,6 +25,7 @@ export type PitMapCache = {
 export async function readPitMapCache(
   db: SupabaseClient<Database>,
   eventId: string,
+  strict = false,
 ): Promise<PitMapCache | null> {
   try {
     const result = await db
@@ -33,6 +35,8 @@ export async function readPitMapCache(
       )
       .eq("event_id", eventId)
       .maybeSingle();
+    if (result.error && strict)
+      throw new SyncDatabaseError("Nexus", "read pit cache", result.error);
     if (result.error || !result.data) return null;
     const row = result.data;
     const parsed = pitMapLayoutSchema.safeParse(row.layout);
@@ -53,7 +57,8 @@ export async function readPitMapCache(
       lastAttemptKey: row.last_attempt_key,
       lastError: row.last_error,
     };
-  } catch {
+  } catch (error) {
+    if (strict) throw error;
     return null;
   }
 }

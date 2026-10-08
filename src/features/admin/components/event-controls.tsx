@@ -118,10 +118,13 @@ export function PitMapSyncControls({
           />
         </label>
         <Button type="submit" variant="secondary" disabled={pending}>
-          {pending ? "Syncing pit map…" : "Sync Pit Map"}
+          {pending ? "Syncing pit data…" : "Sync Pit Map"}
         </Button>
       </div>
-      <p className="text-sm text-muted">Blank uses the event key.</p>
+      <p className="text-sm text-muted">
+        Blank uses the event key. Refreshes pit addresses, map geometry and
+        Nexus inspection status independently.
+      </p>
       {state.error && (
         <p role="alert" className="text-danger">
           {state.error}

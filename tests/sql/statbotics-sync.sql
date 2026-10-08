@@ -38,6 +38,16 @@ select pg_temp.assert_ok((select opr=0 from public.external_team_metrics where s
 select public.apply_statbotics_snapshot((pg_temp.stat_snapshot()-'rows') || '{"attemptedAt":"2026-09-23T14:00:00Z","error":"Temporary outage"}');
 select pg_temp.assert_ok((select status='failed' and last_success_at is not null from public.event_sync_state where source='statbotics'),'Failure erased success');
 select pg_temp.assert_ok((select count(*)=1 from public.external_team_metrics where source='statbotics'),'Failure erased cache');
+
+-- A failed write after the first row was upserted must roll the entire RPC back.
+do $$ begin
+ begin
+  perform public.apply_statbotics_snapshot(pg_temp.stat_snapshot() || '{"attemptedAt":"2026-09-23T14:30:00Z","rows":[{"team_number":1,"event_key":"2026fixture","epa_total":999,"payload":{}},{"team_number":2,"event_key":"2026wrong","epa_total":10,"payload":{}}]}'::jsonb);
+  raise exception 'Expected invalid snapshot failure';
+ exception when raise_exception then if SQLERRM <> 'Wrong event' then raise; end if; end;
+end $$;
+select pg_temp.assert_ok((select epa_total=0 from public.external_team_metrics where source='statbotics'),'Failed RPC overwrote cached EPA');
+select pg_temp.assert_ok((select last_attempt_at='2026-09-23T14:00:00Z'::timestamptz from public.event_sync_state where source='statbotics'),'Failed RPC advanced sync state');
 do $$ begin
  begin perform public.apply_statbotics_snapshot(pg_temp.stat_snapshot()); raise exception 'Expected stale failure';
  exception when raise_exception then if SQLERRM <> 'Stale Statbotics attempt' then raise; end if; end;

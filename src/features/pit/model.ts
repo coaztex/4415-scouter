@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CachedNexusInspection } from "@/lib/nexus/inspection";
 import {
   rebuiltPitSchema,
   type RebuiltPitData,
@@ -16,6 +17,7 @@ export type TeamListRow = {
   status: PitStatus;
   claimedBy: string | null;
   pitLabel?: string | null;
+  inspection?: CachedNexusInspection | null;
 };
 export type TeamFilter = "all" | "unscouted" | "completed";
 const priority: Record<PitStatus, number> = {

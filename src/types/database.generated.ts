@@ -81,6 +81,47 @@ export type Database = {
           },
         ];
       };
+      event_nexus_inspections: {
+        Row: {
+          event_id: string;
+          fetched_at: string | null;
+          last_attempt_at: string;
+          last_attempt_key: string;
+          last_error: string | null;
+          snapshot: Json | null;
+          source_event_key: string;
+          status: string;
+        };
+        Insert: {
+          event_id: string;
+          fetched_at?: string | null;
+          last_attempt_at: string;
+          last_attempt_key: string;
+          last_error?: string | null;
+          snapshot?: Json | null;
+          source_event_key: string;
+          status: string;
+        };
+        Update: {
+          event_id?: string;
+          fetched_at?: string | null;
+          last_attempt_at?: string;
+          last_attempt_key?: string;
+          last_error?: string | null;
+          snapshot?: Json | null;
+          source_event_key?: string;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "event_nexus_inspections_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: true;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       event_picklists: {
         Row: {
           created_at: string;
@@ -1339,6 +1380,38 @@ export type Database = {
           },
         ];
       };
+      statbotics_sync_gate: {
+        Row: {
+          event_id: string | null;
+          expires_at: string | null;
+          next_allowed_at: string;
+          singleton: boolean;
+          token: string | null;
+        };
+        Insert: {
+          event_id?: string | null;
+          expires_at?: string | null;
+          next_allowed_at?: string;
+          singleton?: boolean;
+          token?: string | null;
+        };
+        Update: {
+          event_id?: string | null;
+          expires_at?: string | null;
+          next_allowed_at?: string;
+          singleton?: boolean;
+          token?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "statbotics_sync_gate_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "events";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       strategy_boards: {
         Row: {
           board_data: Json;
@@ -1695,6 +1768,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      claim_statbotics_sync: { Args: { target_event: string }; Returns: Json };
       claim_tba_refresh: {
         Args: {
           forced: boolean;
@@ -1764,6 +1838,10 @@ export type Database = {
           updated_at: string;
         }[];
       };
+      release_statbotics_sync: {
+        Args: { claimed: string; retry_not_before: string };
+        Returns: undefined;
+      };
       release_tba_refresh: {
         Args: { claimed: string; target_key: string };
         Returns: undefined;
@@ -1827,6 +1905,17 @@ export type Database = {
         };
         Returns: undefined;
       };
+      store_nexus_inspection: {
+        Args: {
+          attempted_at: string;
+          fetched_snapshot: Json;
+          message: string;
+          source_key: string;
+          sync_result: string;
+          target: string;
+        };
+        Returns: boolean;
+      };
       store_nexus_pit_map: {
         Args: {
           attempted_at: string;
@@ -1839,6 +1928,10 @@ export type Database = {
           target: string;
         };
         Returns: boolean;
+      };
+      store_statbotics_sync: {
+        Args: { claimed: string; payload: Json };
+        Returns: undefined;
       };
       submit_match_capture: {
         Args: {

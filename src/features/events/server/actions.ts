@@ -15,6 +15,7 @@ import { statboticsRepository } from "./statbotics-repository";
 import { nexusEventKeySchema } from "@/lib/nexus/schemas";
 import { syncNexusForEvent } from "./nexus-repository";
 import type { ImportState } from "../import-state";
+import { logSyncError, SyncDatabaseError } from "@/lib/server/sync-diagnostics";
 
 export async function eventImportAction(
   _previous: ImportState,
@@ -46,7 +47,9 @@ export async function eventImportAction(
         .eq("tba_key", key)
         .select("id")
         .maybeSingle();
-      if (event.error || !event.data)
+      if (event.error)
+        throw new SyncDatabaseError("Nexus", "save event setting", event.error);
+      if (!event.data)
         return {
           error:
             "Nexus event setting could not be saved. Check event access and database migrations.",
@@ -64,7 +67,9 @@ export async function eventImportAction(
         .select("id,tba_key")
         .eq("tba_key", key)
         .single();
-      if (error || !data) return { error: "Event cache unavailable." };
+      if (error)
+        throw new SyncDatabaseError("Statbotics", "event lookup", error);
+      if (!data) return { error: "Event cache unavailable." };
       const result = await syncStatboticsForEvent(
         data,
         statboticsRepository(db),
@@ -72,7 +77,7 @@ export async function eventImportAction(
       revalidatePath("/admin", "layout");
       revalidatePath(`/events/${key}`);
       return result.ok
-        ? { message: "Statbotics cache refreshed." }
+        ? { message: result.message }
         : { error: result.message };
     }
     if (!process.env.TBA_AUTH_KEY?.trim())
@@ -135,10 +140,21 @@ export async function eventImportAction(
     revalidatePath(`/events/${key}`, "layout");
     revalidatePath("/admin", "layout");
     return {
-      message: `Saved ${key}: ${result.teamCount} teams and ${result.matchCount} matches. Scouting records were preserved. ${result.statbotics.ok ? "Statbotics cache refreshed." : result.statbotics.message + " Use Retry Statbotics."} ${result.media.ok ? `TBA media checked (${result.media.robotCount} robot images, ${result.media.avatarCount} team avatars usable).` : "TBA media could not be checked; existing images were preserved."} ${result.nexus.message}`,
+      message: `Saved ${key}: ${result.teamCount} teams and ${result.matchCount} matches. Scouting records were preserved. ${result.statbotics.message}${result.statbotics.ok ? "" : " Use Retry Statbotics."} ${result.media.ok ? `TBA media checked (${result.media.robotCount} robot images, ${result.media.avatarCount} team avatars usable).` : "TBA media could not be checked; existing images were preserved."} ${result.nexus.message}`,
     };
   } catch (error) {
-    if (error instanceof AuthorizationError || error instanceof TbaError)
+    if (error instanceof SyncDatabaseError)
+      logSyncError({
+        provider: form.get("operation") === "pit-map" ? "nexus" : "statbotics",
+        stage: "action_database",
+        eventKey: String(form.get("eventKey") ?? ""),
+        responseDetails: error.details,
+      });
+    if (
+      error instanceof AuthorizationError ||
+      error instanceof TbaError ||
+      error instanceof SyncDatabaseError
+    )
       return { error: error.message };
     return {
       error:
